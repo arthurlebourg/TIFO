@@ -5,23 +5,41 @@
 #include <thread>
 #include <vector>
 
+#include "color.hh"
+
 const size_t screen_width = 640;
 const size_t screen_height = 480;
 
 const int max_threads = std::thread::hardware_concurrency();
 
-void fill_buffer(double miny, double maxy, unsigned char *pixels)
+Color get_pixel(unsigned char *pixels, size_t offset)
 {
-    for (double y = miny; y < maxy; y++)
+    return Color(pixels[offset + 0], pixels[offset + 1], pixels[offset + 2],
+                 pixels[offset + 3]);
+}
+
+void set_pixel(unsigned char *pixels, size_t offset, Color col)
+{
+    pixels[offset + 0] = col.blue(); // b
+    pixels[offset + 1] = col.green(); // g
+    pixels[offset + 2] = col.red(); // r
+    pixels[offset + 3] = col.a(); // a
+}
+
+size_t get_offset(size_t x, size_t y)
+{
+    return (y * 4) * screen_width + (x * 4);
+}
+
+void fill_buffer(size_t miny, size_t maxy, unsigned char *pixels)
+{
+    for (size_t y = miny + 1; y < maxy; y++)
     {
-        for (double x = 0; x < screen_width; x++)
+        for (size_t x = 1; x < screen_width; x++)
         {
-            size_t offset = (y * 4) * screen_width + (x * 4);
-            unsigned char tmp = pixels[offset + 0];
-            pixels[offset + 0] = pixels[offset + 2]; // b
-            // pixels[offset + 1] = 255; // g
-            pixels[offset + 2] = tmp; // r
-            // pixels[offset + 3] = SDL_ALPHA_OPAQUE; // a
+            size_t offset = get_offset(x, y);
+            Color old_pixel = get_pixel(pixels, offset);
+            set_pixel(pixels, offset, old_pixel);
         }
     }
 }
