@@ -7,8 +7,8 @@
 
 #include "color.hh"
 
-const size_t screen_width = 640;
-const size_t screen_height = 480;
+const size_t screen_width = 1280;
+const size_t screen_height = 720;
 
 const int max_threads = std::thread::hardware_concurrency();
 
@@ -80,7 +80,7 @@ int main()
         screen_width * screen_height * 4, sizeof(unsigned char));
 
     FILE *pipein = popen("ffmpeg -i /dev/video0 -f image2pipe -vcodec rawvideo "
-                         "-pix_fmt rgba  -framerate 25 -video_size 640x480 -",
+                         "-pix_fmt rgba -framerate 25 -s 1280x720 -",
                          "r");
 
     int count;
