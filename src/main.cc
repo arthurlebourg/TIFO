@@ -5,22 +5,23 @@
 #include <thread>
 #include <vector>
 
-const size_t screen_width = 1280;
-const size_t screen_height = 960;
+const size_t screen_width = 640;
+const size_t screen_height = 480;
 
 const int max_threads = std::thread::hardware_concurrency();
 
-void fill_buffer(double miny, double maxy, std::vector<unsigned char> *pixels)
+void fill_buffer(double miny, double maxy, unsigned char *pixels)
 {
     for (double y = miny; y < maxy; y++)
     {
         for (double x = 0; x < screen_width; x++)
         {
             size_t offset = (y * 4) * screen_width + (x * 4);
-            pixels->at(offset + 0) = 255; // b
-            pixels->at(offset + 1) = 255; // g
-            pixels->at(offset + 2) = 0; // r
-            pixels->at(offset + 3) = SDL_ALPHA_OPAQUE; // a
+            unsigned char tmp = pixels[offset + 0];
+            pixels[offset + 0] = pixels[offset + 2]; // b
+            // pixels[offset + 1] = 255; // g
+            pixels[offset + 2] = tmp; // r
+            // pixels[offset + 3] = SDL_ALPHA_OPAQUE; // a
         }
     }
 }
@@ -29,9 +30,9 @@ int main()
 {
     SDL_Init(SDL_INIT_EVERYTHING);
 
-    SDL_Window *window = SDL_CreateWindow(
-        "2D Raytracer", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-        screen_width, screen_height, SDL_WINDOW_SHOWN);
+    SDL_Window *window = SDL_CreateWindow("TIFO", SDL_WINDOWPOS_UNDEFINED,
+                                          SDL_WINDOWPOS_UNDEFINED, screen_width,
+                                          screen_height, SDL_WINDOW_SHOWN);
 
     SDL_Renderer *renderer =
         SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -100,19 +101,18 @@ int main()
             break;
 
         // Process frame
-        /*double y_num = screen_height / max_threads;
+        double y_num = screen_height / max_threads;
         std::vector<std::thread> threads;
         for (int i = 0; i < max_threads - 1; i++)
         {
-            threads.push_back(std::thread(fill_buffer, sc, i * y_num,
-                                          (i + 1) * y_num, &pixels));
+            threads.push_back(
+                std::thread(fill_buffer, i * y_num, (i + 1) * y_num, pixels));
         }
-        fill_buffer(sc, (max_threads - 1) * y_num, max_threads * y_num,
-                    &pixels);
+        fill_buffer((max_threads - 1) * y_num, max_threads * y_num, pixels);
         for (int i = 0; i < max_threads - 1; i++)
         {
             threads[i].join();
-        }*/
+        }
 
         // SDL again
 
