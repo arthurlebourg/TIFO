@@ -54,11 +54,13 @@ int main(int argc, char *argv[])
     }
     else
     {
-        argv = argv;
-        pipein = popen("ffmpeg -stream_loop -1 -i ./video.mp4  -f image2pipe "
+        auto command = std::string("ffmpeg -stream_loop -1 -i ");
+        command.append(argv[1]);
+        command.append(" -f image2pipe "
                        "-vcodec rawvideo "
-                       "-pix_fmt rgba -framerate 25 -s 1280x720 -",
-                       "r");
+                       "-pix_fmt rgba -framerate 25 "
+                       "-s 1280x720 -");
+        pipein = popen(command.c_str(), "r");
     }
 
     int count;
