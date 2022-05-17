@@ -41,6 +41,8 @@ public:
 
     Matrix<T> convolve(Matrix<T> kernel);
 
+    Matrix<T> morph(Matrix<T> kernel, bool is_dilation);
+
     size_t get_rows();
 
     size_t get_cols();

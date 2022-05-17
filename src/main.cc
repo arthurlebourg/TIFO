@@ -62,6 +62,7 @@ int main(int argc, char *argv[])
     }
 
     int count;
+    Matrix<float> ellipse = ellipse_kernel(5, 5);
     while (running)
     {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
@@ -116,6 +117,7 @@ int main(int argc, char *argv[])
             return ((a - min) / (max - min)) * 255;
         };
         img.apply(rescale);
+        img = img.morph(ellipse, true);
 
         // Process frame
         double y_num = screen_height / max_threads;

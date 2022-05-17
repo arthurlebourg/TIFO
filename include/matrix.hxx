@@ -92,6 +92,48 @@ Matrix<T> Matrix<T>::convolve(Matrix<T> kernel)
 }
 
 template <typename T>
+Matrix<T> Matrix<T>::morph(Matrix<T> kernel, bool is_dilation)
+{
+    Matrix<T> res = Matrix<T>(mRows, mCols);
+    float val;
+    size_t sz = (kernel.get_rows() - 1) / 2;
+    for (size_t x = 0; x < mRows; x++)
+    {
+        for (size_t y = 0; y < mCols; y++)
+        {
+            if (isonboundary(x, y, sz))
+            {
+                val = 0;
+            }
+            else
+            {
+                std::vector<float> list;
+                for (size_t i = 0; i < kernel.get_rows(); i++)
+                {
+                    for (size_t j = 0; j < kernel.get_cols(); j++)
+                    {
+                        if (kernel.at(j, i) == 1)
+                        {
+                            list.push_back(at(y + j - sz, x + i - sz));
+                        }
+                    }
+                }
+                if (is_dilation)
+                {
+                    val = *std::max_element(list.begin(), list.end());
+                }
+                else
+                {
+                    val = *std::min_element(list.begin(), list.end());
+                }
+            }
+            res.set_value(y, x, val);
+        }
+    }
+    return res;
+}
+
+template <typename T>
 size_t Matrix<T>::get_rows()
 {
     return mRows;
