@@ -43,13 +43,13 @@ T Matrix<T>::get_max()
 }
 
 template <typename T>
-void Matrix<T>::apply(const std::function<T(T)> &func)
+void Matrix<T>::apply(const std::function<T(T, size_t)> &func)
 {
     for (size_t y = 0; y < mRows; y++)
     {
         for (size_t x = 0; x < mCols; x++)
         {
-            mData[y * mCols + x] = func(mData[y * mCols + x]);
+            mData[y * mCols + x] = func(mData[y * mCols + x], y * mCols + x);
         }
     }
 }

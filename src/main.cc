@@ -101,17 +101,19 @@ int main(int argc, char *argv[])
         Matrix<float> img = Matrix(screen_height, screen_width, gray_list);
         auto sobeled_x = img.convolve(sobel_x()).get_mData();
         auto sobeled_y = img.convolve(sobel_y()).get_mData();
-        auto mix = [sobeled_x, sobeled_y](float a) {
-            return sqrt(sobeled_x[a] * sobeled_x[a]
-                        + sobeled_y[a] * sobeled_y[a]);
+        auto mix = [sobeled_x, sobeled_y](float a, size_t i) {
+            a = a;
+            return sqrt(sobeled_x[i] * sobeled_x[i]
+                        + sobeled_y[i] * sobeled_y[i]);
         };
 
         img.apply(mix);
 
         float max = img.get_max();
         float min = img.get_min();
-        auto rescale = [max, min](float a) {
-            return (a - min) / (max - min) * 255;
+        auto rescale = [max, min](float a, size_t i) {
+            i = i;
+            return ((a - min) / (max - min)) * 255;
         };
         img.apply(rescale);
 

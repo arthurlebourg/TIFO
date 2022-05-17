@@ -37,7 +37,7 @@ public:
 
     T get_max();
 
-    void apply(const std::function<T(T)> &func);
+    void apply(const std::function<T(T, size_t)> &func);
 
     Matrix<T> convolve(Matrix<T> kernel);
 
