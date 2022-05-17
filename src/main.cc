@@ -121,9 +121,10 @@ int main()
     unsigned char *pixels = (unsigned char *)calloc(
         screen_width * screen_height * 4, sizeof(unsigned char));
 
-    FILE *pipein = popen("ffmpeg -i /dev/video0 -f image2pipe -vcodec rawvideo "
-                         "-pix_fmt rgba -framerate 25 -s 1280x720 -",
-                         "r");
+    FILE *pipein = popen(
+        "ffmpeg -stream_loop -1 -i ./video.mp4  -f image2pipe -vcodec rawvideo "
+        "-pix_fmt rgba -framerate 25 -s 1280x720 -",
+        "r");
 
     int count;
     while (running)
