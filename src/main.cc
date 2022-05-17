@@ -62,7 +62,6 @@ int main(int argc, char *argv[])
     }
 
     int count;
-    Matrix<float> sobel = sobel_y();
     while (running)
     {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
@@ -100,7 +99,15 @@ int main(int argc, char *argv[])
         // preprocess
         std::vector gray_list = to_grayscale(pixels);
         Matrix<float> img = Matrix(screen_height, screen_width, gray_list);
-        img = img.convolve(sobel);
+        auto sobeled_x = img.convolve(sobel_x()).get_mData();
+        auto sobeled_y = img.convolve(sobel_y()).get_mData();
+        auto mix = [sobeled_x, sobeled_y](float a) {
+            return sqrt(sobeled_x[a] * sobeled_x[a]
+                        + sobeled_y[a] * sobeled_y[a]);
+        };
+
+        img.apply(mix);
+
         float max = img.get_max();
         float min = img.get_min();
         auto rescale = [max, min](float a) {
