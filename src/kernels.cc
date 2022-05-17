@@ -1,5 +1,89 @@
 #include "kernels.hh"
 
+Matrix<float> mgridy(float begin, float end)
+{
+    Matrix<float> mat(end - begin, end - begin);
+    std::vector<float> values;
+    for (float i = begin; i < end; i++)
+    {
+        for (float j = begin; j < end; j++)
+        {
+            values.push_back(i);
+        }
+    }
+    mat.set_values(values);
+    return mat;
+}
+
+Matrix<float> mgridx(float begin, float end)
+{
+    Matrix<float> mat(end - begin, end - begin);
+    std::vector<float> values;
+    for (float i = begin; i < end; i++)
+    {
+        for (float j = begin; j < end; j++)
+        {
+            values.push_back(j);
+        }
+    }
+    mat.set_values(values);
+    return mat;
+}
+
+Matrix<float> gauss_kernel(float size)
+{
+    Matrix<float> x = mgridx(-size, size + 1);
+    Matrix<float> y = mgridy(-size, size + 1);
+
+    float coef = 2 * (size / 3) * (size / 3);
+
+    auto func = [coef](float a, size_t i) {
+        i = i;
+        return ((a * a) / coef);
+    };
+    x.apply(func);
+    y.apply(func);
+    x += y;
+    auto func2 = [](float a, size_t i) {
+        i = i;
+        return exp(-a);
+    };
+    x.apply(func2);
+    return x;
+}
+
+Matrix<float> derivative_gauss_kernel_x(float size)
+{
+    Matrix<float> x = mgridx(-size, size + 1);
+    Matrix<float> kernel = gauss_kernel(size);
+
+    x *= kernel;
+    return -x;
+}
+
+Matrix<float> derivative_gauss_kernel_y(float size)
+{
+    Matrix<float> y = mgridy(-size, size + 1);
+    Matrix<float> kernel = gauss_kernel(size);
+
+    y *= kernel;
+    return -y;
+}
+
+Matrix<float> derivative_gauss_x(Matrix<float> img, float size)
+{
+    auto gx = derivative_gauss_kernel_x(size);
+    auto mat = Matrix<float>(img.convolve(gx));
+    return mat;
+}
+
+Matrix<float> derivative_gauss_y(Matrix<float> img, float size)
+{
+    auto gy = derivative_gauss_kernel_y(size);
+    auto mat = Matrix<float>(img.convolve(gy));
+    return mat;
+}
+
 Matrix<float> ellipse_kernel(int height, int width)
 {
     int i, j;
