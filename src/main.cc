@@ -98,8 +98,9 @@ int main(int argc, char *argv[])
             break;
 
         // preprocess
-        std::vector gray_list = to_grayscale(pixels);
-        Matrix<float> img = Matrix(screen_height, screen_width, gray_list);
+        std::vector<float> gray_list = to_grayscale(pixels);
+        Matrix<float> img =
+            Matrix<float>(screen_height, screen_width, gray_list);
         auto sobeled_x = img.convolve(sobel_x()).get_mData();
         auto sobeled_y = img.convolve(sobel_y()).get_mData();
         auto mix = [sobeled_x, sobeled_y](float a, size_t i) {
