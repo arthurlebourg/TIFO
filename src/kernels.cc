@@ -123,13 +123,13 @@ Matrix<float> ellipse_kernel(int height, int width)
     return Matrix<float>(height, width, vec);
 }
 
-Matrix<float> sobel_x()
+Matrix<float> sobel_x_kernel()
 {
     std::vector<float> values{ -1, 0, 1, -2, 0, 2, -1, 0, 1 };
     return Matrix<float>(3, 3, values);
 }
 
-Matrix<float> sobel_y()
+Matrix<float> sobel_y_kernel()
 {
     std::vector<float> values{ -1, -2, -1, 0, 0, 0, 1, 2, 1 };
     return Matrix<float>(3, 3, values);

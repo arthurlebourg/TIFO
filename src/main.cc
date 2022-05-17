@@ -63,8 +63,12 @@ int main(int argc, char *argv[])
         pipein = popen(command.c_str(), "r");
     }
 
+    auto gauss = gauss_kernel(5);
+    auto sobel_x = sobel_x_kernel();
+    auto sobel_y = sobel_y_kernel();
+    auto ellipse = ellipse_kernel(5, 5);
+
     int count;
-    Matrix<float> ellipse = ellipse_kernel(5, 5);
     while (running)
     {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
@@ -100,19 +104,25 @@ int main(int argc, char *argv[])
             break;
 
         // preprocess
-        std::vector<float> gray_list = to_grayscale(pixels);
-        Matrix<float> img =
-            Matrix<float>(screen_height, screen_width, gray_list);
-        auto sobeled_x = img.convolve(sobel_x()).get_mData();
-        auto sobeled_y = img.convolve(sobel_y()).get_mData();
+
+        // Grayscale
+        auto gray_list = to_grayscale(pixels);
+        auto img = Matrix<float>(screen_height, screen_width, gray_list);
+
+        // Filter out noise (slow)
+        img = img.convolve(gauss);
+
+        // Intensity gradients
+        auto sobeled_x = img.convolve(sobel_x).get_mData();
+        auto sobeled_y = img.convolve(sobel_y).get_mData();
         auto mix = [sobeled_x, sobeled_y](float a, size_t i) {
             a = a;
             return sqrt(sobeled_x[i] * sobeled_x[i]
                         + sobeled_y[i] * sobeled_y[i]);
         };
-
         img.apply(mix);
 
+        // Remap to RGB values
         float max = img.get_max();
         float min = img.get_min();
         auto rescale = [max, min](float a, size_t i) {
@@ -120,7 +130,6 @@ int main(int argc, char *argv[])
             return ((a - min) / (max - min)) * 255;
         };
         img.apply(rescale);
-        img = img.morph(ellipse, true);
 
         // Process frame
         double y_num = screen_height / max_threads;
