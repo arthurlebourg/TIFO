@@ -5,88 +5,11 @@
 #include <thread>
 #include <vector>
 
-#include "color.hh"
-
-const size_t screen_width = 1280;
-const size_t screen_height = 720;
+#include "filters.hh"
 
 const int max_threads = std::thread::hardware_concurrency();
 
-Color get_pixel(unsigned char *pixels, size_t offset)
-{
-    return Color(pixels[offset + 0], pixels[offset + 1], pixels[offset + 2],
-                 pixels[offset + 3]);
-}
-
-void set_pixel(unsigned char *pixels, size_t offset, Color col)
-{
-    pixels[offset + 0] = col.blue(); // b
-    pixels[offset + 1] = col.green(); // g
-    pixels[offset + 2] = col.red(); // r
-    pixels[offset + 3] = col.a(); // a
-}
-
-size_t get_offset(size_t x, size_t y)
-{
-    return (y * 4) * screen_width + (x * 4);
-}
-
-void fill_buffer_pixelate(size_t miny, size_t maxy, unsigned char *pixels,
-                          size_t pixel_size)
-{
-    for (size_t y = miny; y < maxy; y += pixel_size)
-    {
-        for (size_t x = 0; x < screen_width; x += pixel_size)
-        {
-            size_t offset = get_offset(x, y);
-            Color old_pixel = get_pixel(pixels, offset);
-            size_t red = old_pixel.red();
-            size_t blue = old_pixel.blue();
-            size_t green = old_pixel.green();
-            for (size_t i = 0; i < pixel_size; i++)
-            {
-                for (size_t j = 0; j < pixel_size; j++)
-                {
-                    size_t offset_bis = get_offset(x + i, y + j);
-                    Color next_pixel = get_pixel(pixels, offset_bis);
-                    red += next_pixel.red();
-                    blue += next_pixel.blue();
-                    green += next_pixel.green();
-                }
-            }
-            red /= pixel_size * pixel_size;
-            blue /= pixel_size * pixel_size;
-            green /= pixel_size * pixel_size;
-
-            set_pixel(pixels, offset, Color(red, green, blue, old_pixel.a()));
-            for (size_t i = 0; i < pixel_size; i++)
-            {
-                for (size_t j = 0; j < pixel_size; j++)
-                {
-                    size_t offset_bis = get_offset(x + i, y + j);
-                    set_pixel(pixels, offset_bis,
-                              Color(red, green, blue, old_pixel.a()));
-                }
-            }
-        }
-    }
-}
-
-void fill_buffer(size_t miny, size_t maxy, unsigned char *pixels)
-{
-    for (size_t y = miny; y < maxy; y++)
-    {
-        for (size_t x = 0; x < screen_width; x++)
-        {
-            size_t offset = get_offset(x, y);
-            Color old_pixel = get_pixel(pixels, offset);
-
-            set_pixel(pixels, offset, old_pixel);
-        }
-    }
-}
-
-int main()
+int main(int argc, char *argv[])
 {
     SDL_Init(SDL_INIT_EVERYTHING);
 
@@ -121,12 +44,25 @@ int main()
     unsigned char *pixels = (unsigned char *)calloc(
         screen_width * screen_height * 4, sizeof(unsigned char));
 
-    FILE *pipein = popen(
-        "ffmpeg -stream_loop -1 -i ./video.mp4  -f image2pipe -vcodec rawvideo "
-        "-pix_fmt rgba -framerate 25 -s 1280x720 -",
-        "r");
+    FILE *pipein;
+    if (argc == 1)
+    {
+        pipein = popen("ffmpeg -stream_loop -1 -i /dev/video0  -f image2pipe "
+                       "-vcodec rawvideo "
+                       "-pix_fmt rgba -framerate 25 -s 1280x720 -",
+                       "r");
+    }
+    else
+    {
+        argv = argv;
+        pipein = popen("ffmpeg -stream_loop -1 -i ./video.mp4  -f image2pipe "
+                       "-vcodec rawvideo "
+                       "-pix_fmt rgba -framerate 25 -s 1280x720 -",
+                       "r");
+    }
 
     int count;
+    Matrix<float> sobel = sobel_y();
     while (running)
     {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
@@ -161,16 +97,27 @@ int main()
         if (count != screen_width * screen_height * 4)
             break;
 
+        // preprocess
+        std::vector gray_list = to_grayscale(pixels);
+        Matrix<float> img = Matrix(screen_height, screen_width, gray_list);
+        img = img.convolve(sobel);
+        float max = img.get_max();
+        float min = img.get_min();
+        auto rescale = [max, min](float a) {
+            return (a - min) / (max - min) * 255;
+        };
+        img.apply(rescale);
+
         // Process frame
         double y_num = screen_height / max_threads;
         std::vector<std::thread> threads;
         for (int i = 0; i < max_threads - 1; i++)
         {
-            threads.push_back(std::thread(fill_buffer_pixelate, i * y_num,
-                                          (i + 1) * y_num, pixels, 10));
+            threads.push_back(std::thread(fill_buffer_gradient, i * y_num,
+                                          (i + 1) * y_num, img, pixels));
         }
-        fill_buffer_pixelate((max_threads - 1) * y_num, max_threads * y_num,
-                             pixels, 10);
+        fill_buffer_gradient((max_threads - 1) * y_num, max_threads * y_num,
+                             img, pixels);
         for (int i = 0; i < max_threads - 1; i++)
         {
             threads[i].join();

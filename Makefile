@@ -4,7 +4,7 @@ LDFLAGS  := -L/usr/lib -lstdc++ -lm
 OBJ_DIR  := ./build
 BIN_DIR  := ./bin
 TARGET   := tifo
-INCLUDE  := -Iinclude/
+INCLUDE  := -I include/
 SRC      := $(wildcard src/*.cc)
 
 OBJECTS  := $(SRC:%.cc=$(OBJ_DIR)/%.o)
