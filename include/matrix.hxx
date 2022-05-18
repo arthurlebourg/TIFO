@@ -259,7 +259,7 @@ Matrix<T> Matrix<T>::operator-(const Matrix<T> &rhs)
 template <typename T>
 bool Matrix<T>::is_in_bound(size_t x, size_t y)
 {
-    return x >= 0 && x < mRows && y >= 0 && y < mCols;
+    return x < mRows && y < mCols;
 }
 
 template <typename T>

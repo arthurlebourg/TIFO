@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
         //     threads[i].join();
         // }
 
-        fill_buffer(0, screen_height, pixels, output);
+        fill_buffer_dark_borders(0, screen_height, pixels, output);
 
         // SDL again
 

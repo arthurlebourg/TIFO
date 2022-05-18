@@ -23,4 +23,8 @@ template <typename T>
 void fill_buffer(size_t miny, size_t maxy, unsigned char *pixels,
                  Matrix<T> &mat);
 
+template <typename T>
+void fill_buffer_dark_borders(size_t miny, size_t maxy, unsigned char *pixels,
+                              Matrix<T> &mat);
+
 #include "filters.hxx"

@@ -6,7 +6,7 @@ enum Edge : uint8_t
 {
     NONE,
     WEAK,
-    STRONG,
+    STRONG = 255,
 };
 
 void intensity_gradients(Matrix<float> &input, Matrix<float> &gradient_out,
