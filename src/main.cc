@@ -69,6 +69,7 @@ int main(int argc, char *argv[])
     // auto buffer2 = Matrix<float>(screen_height, screen_width, 0);
     auto buffer3 = Matrix<float>(screen_height, screen_width, 0);
     auto buffer4 = Matrix<float>(screen_height, screen_width, 0);
+    auto buffer5 = Matrix<float>(screen_height, screen_width, 0);
 
     auto gauss = gauss_kernel(5);
     // auto ellipse = ellipse_kernel(5, 5);
@@ -119,7 +120,9 @@ int main(int argc, char *argv[])
         // Intensity gradients
         intensity_gradients(buffer1, buffer3, buffer4);
 
-        Matrix<float> &output = buffer3;
+        non_maximum_suppression(buffer3, buffer4, buffer5);
+
+        Matrix<float> &output = buffer5;
 
         // Remap to RGB values
         auto minmax = output.get_minmax();
