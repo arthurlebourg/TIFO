@@ -76,8 +76,10 @@ int main(int argc, char *argv[])
     auto weak_strong_edges = Matrix<Edge>(screen_height, screen_width, NONE);
     // auto edges = Matrix<Edge>(screen_height, screen_width, NONE);
 
-    auto gauss = gauss_kernel(5);
-    // auto ellipse = ellipse_kernel(3, 3);
+    auto gauss = gauss_kernel(3);
+    // auto big_ellipse = ellipse_kernel(3,3);
+    // auto small_ellipse = ellipse_kernel(2,2);
+    auto square = square_kernel(3, 3);
 
     int count;
     while (running)
@@ -131,9 +133,9 @@ int main(int argc, char *argv[])
 
         weak_edges_removal(weak_strong_edges, buffer6);
 
-        // buffer6.morph(ellipse, true, buffer7);
+        buffer6.morph(square, true, buffer7);
 
-        auto &output = buffer6;
+        auto &output = buffer7;
 
         // Remap to RGB values
         auto minmax = output.get_minmax();

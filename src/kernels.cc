@@ -109,6 +109,11 @@ Matrix<float> ellipse_kernel(int height, int width)
     return Matrix<float>(height, width, vec);
 }
 
+Matrix<float> square_kernel(int height, int width)
+{
+    return Matrix<float>(height, width, 1);
+}
+
 Matrix<float> sobel_x_kernel()
 {
     return Matrix<float>(3, 3, { -1, 0, 1, -2, 0, 2, -1, 0, 1 });

@@ -17,3 +17,4 @@ Matrix<float> derivative_gauss_x(Matrix<float> img, float size);
 Matrix<float> derivative_gauss_y(Matrix<float> img, float size);
 
 Matrix<float> ellipse_kernel(int height, int width);
+Matrix<float> square_kernel(int height, int width);
