@@ -17,5 +17,5 @@ void fill_buffer_pixelate(size_t miny, size_t maxy, unsigned char *pixels,
 
 void fill_buffer(size_t miny, size_t maxy, unsigned char *pixels);
 
-void fill_buffer_gradient(size_t miny, size_t maxy, Matrix<float> mat,
-                          unsigned char *pixels);
+void fill_buffer(size_t miny, size_t maxy, unsigned char *pixels,
+                 Matrix<float> &mat);

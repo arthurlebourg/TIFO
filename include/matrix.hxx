@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "matrix.hh"
 
 template <typename T>
@@ -21,43 +23,34 @@ void Matrix<T>::set_values(std::vector<T> val)
 template <typename T>
 T Matrix<T>::get_min()
 {
-    T min = 0;
-    for (size_t i = 0; i < mRows * mCols; i++)
-    {
-        if (mData[i] < min)
-            min = mData[i];
-    }
-    return min;
+    return *std::min_element(mData.begin(), mData.end());
 }
 
 template <typename T>
 T Matrix<T>::get_max()
 {
-    T max = 0;
-    for (size_t i = 0; i < mRows * mCols; i++)
-    {
-        if (mData[i] > max)
-            max = mData[i];
-    }
-    return max;
+    return *std::max_element(mData.begin(), mData.end());
+}
+
+template <typename T>
+std::pair<T, T> Matrix<T>::get_minmax()
+{
+    auto minmax = std::minmax_element(mData.begin(), mData.end());
+    return { *minmax.first, *minmax.second };
 }
 
 template <typename T>
 void Matrix<T>::apply(const std::function<T(T, size_t)> &func)
 {
-    for (size_t y = 0; y < mRows; y++)
+    for (size_t i = 0; i < mRows * mCols; i++)
     {
-        for (size_t x = 0; x < mCols; x++)
-        {
-            mData[y * mCols + x] = func(mData[y * mCols + x], y * mCols + x);
-        }
+        mData[i] = func(mData[i], i);
     }
 }
 
 template <typename T>
-Matrix<T> Matrix<T>::convolve(Matrix<T> kernel)
+void Matrix<T>::convolve(Matrix<T> &kernel, Matrix<T> &output)
 {
-    Matrix<T> convoluted = Matrix<T>(mRows, mCols, 0);
     int kCenterX = kernel.mCols / 2;
     int kCenterY = kernel.mRows / 2;
 
@@ -80,15 +73,13 @@ Matrix<T> Matrix<T>::convolve(Matrix<T> kernel)
                     // ignore input samples which are out of bound
                     if (ii < mRows && jj < mCols)
                     {
-                        convoluted.mData[i * mCols + j] +=
-                            mData[ii * mCols + jj]
+                        output.mData[i * mCols + j] += mData[ii * mCols + jj]
                             * kernel.mData[m * kernel.mCols + n];
                     }
                 }
             }
         }
     }
-    return convoluted;
 }
 
 template <typename T>
@@ -107,7 +98,7 @@ Matrix<T> Matrix<T>::morph(Matrix<T> kernel, bool is_dilation)
             }
             else
             {
-                std::vector<float> list;
+                std::vector<float> list(kernel.get_rows() * kernel.get_cols());
                 for (size_t i = 0; i < kernel.get_rows(); i++)
                 {
                     for (size_t j = 0; j < kernel.get_cols(); j++)
@@ -143,12 +134,6 @@ template <typename T>
 size_t Matrix<T>::get_cols()
 {
     return mCols;
-}
-
-template <typename T>
-std::vector<T> Matrix<T>::get_mData()
-{
-    return mData;
 }
 
 template <typename T>
@@ -205,12 +190,10 @@ Matrix<T> Matrix<T>::operator*(const Matrix<T> &rhs)
                   << std::endl;
         return res;
     }
-    std::vector<T> new_vec;
     for (size_t i = 0; i < rhs.mCols * rhs.mRows; i++)
     {
-        new_vec.push_back(mData[i] * rhs.mData[i]);
+        res.mData[i] = mData[i] * rhs.mData[i];
     }
-    res.set_values(new_vec);
     return res;
 }
 
@@ -224,12 +207,10 @@ Matrix<T> Matrix<T>::operator/(const Matrix<T> &rhs)
                   << std::endl;
         return res;
     }
-    std::vector<T> new_vec;
     for (size_t i = 0; i < rhs.mCols * rhs.mRows; i++)
     {
-        new_vec.push_back(mData[i] / rhs.mData[i]);
+        res.mData[i] = mData[i] / rhs.mData[i];
     }
-    res.set_values(new_vec);
     return res;
 }
 
@@ -253,12 +234,10 @@ Matrix<T> Matrix<T>::operator+(const Matrix<T> &rhs)
                   << std::endl;
         return res;
     }
-    std::vector<T> new_vec;
     for (size_t i = 0; i < rhs.mCols * rhs.mRows; i++)
     {
-        new_vec.push_back(mData[i] + rhs.mData[i]);
+        res.mData[i] = mData[i] + rhs.mData[i];
     }
-    res.set_values(new_vec);
     return res;
 }
 
@@ -272,12 +251,10 @@ Matrix<T> Matrix<T>::operator-(const Matrix<T> &rhs)
                   << std::endl;
         return res;
     }
-    std::vector<T> new_vec;
     for (size_t i = 0; i < rhs.mCols * rhs.mRows; i++)
     {
-        new_vec.push_back(mData[i] - rhs.mData[i]);
+        res.mData[i] = mData[i] - rhs.mData[i];
     }
-    res.set_values(new_vec);
     return res;
 }
 

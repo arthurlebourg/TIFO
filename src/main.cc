@@ -1,10 +1,12 @@
 #include <SDL2/SDL.h>
+#include <algorithm>
 #include <cstring>
 #include <iomanip>
 #include <iostream>
 #include <thread>
 #include <vector>
 
+#include "canny.hh"
 #include "filters.hh"
 
 const int max_threads = std::thread::hardware_concurrency();
@@ -63,10 +65,13 @@ int main(int argc, char *argv[])
         pipein = popen(command.c_str(), "r");
     }
 
+    auto buffer1 = Matrix<float>(screen_height, screen_width, 0);
+    // auto buffer2 = Matrix<float>(screen_height, screen_width, 0);
+    auto buffer3 = Matrix<float>(screen_height, screen_width, 0);
+    auto buffer4 = Matrix<float>(screen_height, screen_width, 0);
+
     auto gauss = gauss_kernel(5);
-    auto sobel_x = sobel_x_kernel();
-    auto sobel_y = sobel_y_kernel();
-    auto ellipse = ellipse_kernel(5, 5);
+    // auto ellipse = ellipse_kernel(5, 5);
 
     int count;
     while (running)
@@ -106,45 +111,40 @@ int main(int argc, char *argv[])
         // preprocess
 
         // Grayscale
-        auto gray_list = to_grayscale(pixels);
-        auto img = Matrix<float>(screen_height, screen_width, gray_list);
+        buffer1.set_values(to_grayscale(pixels));
 
-        // Filter out noise (slow)
-        img = img.convolve(gauss);
+        // // Filter out noise (slow)
+        // buffer1.convolve(gauss, buffer2);
 
         // Intensity gradients
-        auto sobeled_x = img.convolve(sobel_x).get_mData();
-        auto sobeled_y = img.convolve(sobel_y).get_mData();
-        auto mix = [sobeled_x, sobeled_y](float a, size_t i) {
-            a = a;
-            return sqrt(sobeled_x[i] * sobeled_x[i]
-                        + sobeled_y[i] * sobeled_y[i]);
-        };
-        img.apply(mix);
+        intensity_gradients(buffer1, buffer3, buffer4);
+
+        Matrix<float> &output = buffer3;
 
         // Remap to RGB values
-        float max = img.get_max();
-        float min = img.get_min();
-        auto rescale = [max, min](float a, size_t i) {
+        auto minmax = output.get_minmax();
+        auto rescale = [minmax](float a, size_t i) {
             i = i;
-            return ((a - min) / (max - min)) * 255;
+            return ((a - minmax.first) / (minmax.second - minmax.first)) * 255;
         };
-        img.apply(rescale);
+        output.apply(rescale);
 
-        // Process frame
-        double y_num = screen_height / max_threads;
-        std::vector<std::thread> threads;
-        for (int i = 0; i < max_threads - 1; i++)
-        {
-            threads.push_back(std::thread(fill_buffer_gradient, i * y_num,
-                                          (i + 1) * y_num, img, pixels));
-        }
-        fill_buffer_gradient((max_threads - 1) * y_num, max_threads * y_num,
-                             img, pixels);
-        for (int i = 0; i < max_threads - 1; i++)
-        {
-            threads[i].join();
-        }
+        // // Process frame
+        // double y_num = screen_height / max_threads;
+        // std::vector<std::thread> threads(max_threads);
+        // for (int i = 0; i < max_threads - 1; i++)
+        // {
+        //     threads[i] =
+        //         std::thread(fill_buffer, i * y_num, (i + 1) * y_num,
+        //         pixels);
+        // }
+        // fill_buffer((max_threads - 1) * y_num, max_threads * y_num,
+        // pixels); for (int i = 0; i < max_threads - 1; i++)
+        // {
+        //     threads[i].join();
+        // }
+
+        fill_buffer(0, screen_height, pixels, output);
 
         // SDL again
 

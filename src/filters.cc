@@ -2,7 +2,7 @@
 
 std::vector<float> to_grayscale(unsigned char *pixels)
 {
-    std::vector<float> res;
+    std::vector<float> res(screen_width * screen_height);
     for (size_t y = 0; y < screen_height; y++)
     {
         for (size_t x = 0; x < screen_width; x++)
@@ -11,7 +11,7 @@ std::vector<float> to_grayscale(unsigned char *pixels)
             Color old_pixel = get_pixel(pixels, offset);
             float gray = old_pixel.red() * 0.299 + old_pixel.green() * 0.587
                 + old_pixel.blue() * 0.114;
-            res.push_back(gray);
+            res[y * screen_width + x] = gray;
         }
     }
     return res;
@@ -91,8 +91,8 @@ void fill_buffer(size_t miny, size_t maxy, unsigned char *pixels)
     }
 }
 
-void fill_buffer_gradient(size_t miny, size_t maxy, Matrix<float> mat,
-                          unsigned char *pixels)
+void fill_buffer(size_t miny, size_t maxy, unsigned char *pixels,
+                 Matrix<float> &mat)
 {
     for (size_t y = miny; y < maxy; y++)
     {

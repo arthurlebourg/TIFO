@@ -70,20 +70,6 @@ Matrix<float> derivative_gauss_kernel_y(float size)
     return -y;
 }
 
-Matrix<float> derivative_gauss_x(Matrix<float> img, float size)
-{
-    auto gx = derivative_gauss_kernel_x(size);
-    auto mat = Matrix<float>(img.convolve(gx));
-    return mat;
-}
-
-Matrix<float> derivative_gauss_y(Matrix<float> img, float size)
-{
-    auto gy = derivative_gauss_kernel_y(size);
-    auto mat = Matrix<float>(img.convolve(gy));
-    return mat;
-}
-
 Matrix<float> ellipse_kernel(int height, int width)
 {
     int i, j;
@@ -125,12 +111,30 @@ Matrix<float> ellipse_kernel(int height, int width)
 
 Matrix<float> sobel_x_kernel()
 {
-    std::vector<float> values{ -1, 0, 1, -2, 0, 2, -1, 0, 1 };
-    return Matrix<float>(3, 3, values);
+    return Matrix<float>(3, 3, { -1, 0, 1, -2, 0, 2, -1, 0, 1 });
 }
 
 Matrix<float> sobel_y_kernel()
 {
-    std::vector<float> values{ -1, -2, -1, 0, 0, 0, 1, 2, 1 };
-    return Matrix<float>(3, 3, values);
+    return Matrix<float>(3, 3, { -1, -2, -1, 0, 0, 0, 1, 2, 1 });
+}
+
+Matrix<float> sobel_x_vertical_kernel()
+{
+    return Matrix<float>(3, 1, { 1, 2, 1 });
+}
+
+Matrix<float> sobel_x_horizontal_kernel()
+{
+    return Matrix<float>(1, 3, { 1, 0, -1 });
+}
+
+Matrix<float> sobel_y_vertical_kernel()
+{
+    return Matrix<float>(3, 1, { 1, 0, -1 });
+}
+
+Matrix<float> sobel_y_horizontal_kernel()
+{
+    return Matrix<float>(1, 3, { 1, 2, 1 });
 }

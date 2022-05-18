@@ -37,17 +37,17 @@ public:
 
     T get_max();
 
+    std::pair<T, T> get_minmax();
+
     void apply(const std::function<T(T, size_t)> &func);
 
-    Matrix<T> convolve(Matrix<T> kernel);
+    void convolve(Matrix<T> &kernel, Matrix<T> &output);
 
     Matrix<T> morph(Matrix<T> kernel, bool is_dilation);
 
     size_t get_rows();
 
     size_t get_cols();
-
-    std::vector<T> get_mData();
 
     T at(size_t x, size_t y);
 
