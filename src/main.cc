@@ -66,13 +66,18 @@ int main(int argc, char *argv[])
     }
 
     auto buffer1 = Matrix<float>(screen_height, screen_width, 0);
-    // auto buffer2 = Matrix<float>(screen_height, screen_width, 0);
+    auto buffer2 = Matrix<float>(screen_height, screen_width, 0);
     auto buffer3 = Matrix<float>(screen_height, screen_width, 0);
     auto buffer4 = Matrix<float>(screen_height, screen_width, 0);
     auto buffer5 = Matrix<float>(screen_height, screen_width, 0);
+    auto buffer6 = Matrix<float>(screen_height, screen_width, 0);
+    auto buffer7 = Matrix<float>(screen_height, screen_width, 0);
+
+    auto weak_strong_edges = Matrix<Edge>(screen_height, screen_width, NONE);
+    // auto edges = Matrix<Edge>(screen_height, screen_width, NONE);
 
     auto gauss = gauss_kernel(5);
-    // auto ellipse = ellipse_kernel(5, 5);
+    // auto ellipse = ellipse_kernel(3, 3);
 
     int count;
     while (running)
@@ -122,10 +127,18 @@ int main(int argc, char *argv[])
 
         non_maximum_suppression(buffer3, buffer4, buffer5);
 
-        Matrix<float> &output = buffer5;
+        weak_strong_edges_thresholding(buffer5, weak_strong_edges);
+
+        weak_edges_removal(weak_strong_edges, buffer6);
+
+        // buffer6.morph(ellipse, true, buffer7);
+
+        auto &output = buffer6;
 
         // Remap to RGB values
         auto minmax = output.get_minmax();
+        // std::cout << minmax.first << ", " << minmax.second << std::endl;
+
         auto rescale = [minmax](float a, size_t i) {
             i = i;
             return ((a - minmax.first) / (minmax.second - minmax.first)) * 255;

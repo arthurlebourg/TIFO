@@ -34,38 +34,32 @@ public:
     void set_values(std::vector<T> val);
 
     T get_min();
-
     T get_max();
-
     std::pair<T, T> get_minmax();
 
     void apply(const std::function<T(T, size_t)> &func);
-
     void convolve(Matrix<T> &kernel, Matrix<T> &output);
-
-    Matrix<T> morph(Matrix<T> kernel, bool is_dilation);
+    void morph(Matrix<T> &kernel, bool is_dilation, Matrix<T> &output);
 
     size_t get_rows();
-
     size_t get_cols();
+
+    std::vector<T> &get_data();
+    const std::vector<T> &get_data() const;
 
     T at(size_t x, size_t y);
 
     void set_value(size_t x, size_t y, T val);
 
     Matrix<T> operator+=(const Matrix<T> &rhs);
-
     Matrix<T> operator*=(const Matrix<T> &rhs);
-
     Matrix<T> operator*(const Matrix<T> &rhs);
-
     Matrix<T> operator/(const Matrix<T> &rhs);
-
     Matrix<T> operator-();
-
     Matrix<T> operator+(const Matrix<T> &rhs);
-
     Matrix<T> operator-(const Matrix<T> &rhs);
+
+    bool is_in_bound(size_t x, size_t y);
 
     bool isonboundary(size_t x, size_t y, size_t sz);
 

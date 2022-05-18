@@ -1,9 +1,9 @@
 #include "canny.hh"
 
+#include <iostream>
 #include <math.h>
 
 const float SOBEL_X[] = { -1, 0, 1, -2, 0, 2, -1, 0, 1 };
-
 const float SOBEL_Y[] = { -1, -2, -1, 0, 0, 0, 1, 2, 1 };
 
 void intensity_gradients(Matrix<float> &input, Matrix<float> &gradient,
@@ -43,12 +43,9 @@ void intensity_gradients(Matrix<float> &input, Matrix<float> &gradient,
 void non_maximum_suppression(Matrix<float> &gradient_in,
                              Matrix<float> &angle_in, Matrix<float> &output)
 {
-    auto m_rows = gradient_in.get_rows();
-    auto m_cols = gradient_in.get_cols();
-
-    for (size_t i = 0; i < m_rows; i++)
+    for (size_t i = 0; i < gradient_in.get_rows(); i++)
     {
-        for (size_t j = 0; j < m_cols; j++)
+        for (size_t j = 0; j < gradient_in.get_cols(); j++)
         {
             float angle = angle_in.at(j, i);
 
@@ -88,6 +85,61 @@ void non_maximum_suppression(Matrix<float> &gradient_in,
                 output.set_value(j, i, value);
             else
                 output.set_value(j, i, 0);
+        }
+    }
+}
+
+void weak_strong_edges_thresholding(Matrix<float> &input, Matrix<Edge> &output)
+{
+    const float low_threshold_ratio = 0.05;
+    const float hight_threshold_ratio = 0.09;
+
+    float high_threshold = input.get_max() * hight_threshold_ratio;
+    float low_threshold = high_threshold * low_threshold_ratio;
+
+    for (size_t i = 0; i < input.get_rows(); i++)
+    {
+        for (size_t j = 0; j < input.get_cols(); j++)
+        {
+            float value = input.at(j, i);
+
+            if (value >= high_threshold)
+                output.set_value(j, i, STRONG);
+            else if (value < low_threshold)
+                output.set_value(j, i, NONE);
+            else
+                output.set_value(j, i, WEAK);
+        }
+    }
+}
+
+const std::pair<int8_t, int8_t> NEIGHBOURS[] = {
+    { -1, -1 }, { -1, 0 }, { -1, 1 }, { 0, -1 }, { 0, 0 },
+    { 0, 1 },   { 1, -1 }, { 1, 0 },  { 1, 1 },
+};
+
+void weak_edges_removal(Matrix<Edge> &input, Matrix<float> &output)
+{
+    for (size_t i = 0; i < input.get_rows(); i++)
+    {
+        for (size_t j = 0; j < input.get_cols(); j++)
+        {
+            auto value = input.at(j, i);
+            if (value == WEAK)
+            {
+                value = NONE;
+                // If weak edge connected to strong edge
+                for (auto p : NEIGHBOURS)
+                {
+                    if (input.is_in_bound(p.first, p.second)
+                        && input.at(p.first, p.second) == STRONG)
+                    {
+                        value = STRONG;
+                        break;
+                    }
+                }
+            }
+            output.set_value(j, i, value);
         }
     }
 }

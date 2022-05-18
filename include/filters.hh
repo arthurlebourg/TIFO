@@ -1,3 +1,5 @@
+#pragma once
+
 #include "color.hh"
 #include "image.hh"
 
@@ -17,5 +19,8 @@ void fill_buffer_pixelate(size_t miny, size_t maxy, unsigned char *pixels,
 
 void fill_buffer(size_t miny, size_t maxy, unsigned char *pixels);
 
+template <typename T>
 void fill_buffer(size_t miny, size_t maxy, unsigned char *pixels,
-                 Matrix<float> &mat);
+                 Matrix<T> &mat);
+
+#include "filters.hxx"

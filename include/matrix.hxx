@@ -83,9 +83,8 @@ void Matrix<T>::convolve(Matrix<T> &kernel, Matrix<T> &output)
 }
 
 template <typename T>
-Matrix<T> Matrix<T>::morph(Matrix<T> kernel, bool is_dilation)
+void Matrix<T>::morph(Matrix<T> &kernel, bool is_dilation, Matrix<T> &output)
 {
-    Matrix<T> res = Matrix<T>(mRows, mCols);
     float val;
     size_t sz = (kernel.get_rows() - 1) / 2;
     for (size_t x = 0; x < mRows; x++)
@@ -118,10 +117,9 @@ Matrix<T> Matrix<T>::morph(Matrix<T> kernel, bool is_dilation)
                     val = *std::min_element(list.begin(), list.end());
                 }
             }
-            res.set_value(y, x, val);
+            output.set_value(y, x, val);
         }
     }
-    return res;
 }
 
 template <typename T>
@@ -256,6 +254,12 @@ Matrix<T> Matrix<T>::operator-(const Matrix<T> &rhs)
         res.mData[i] = mData[i] - rhs.mData[i];
     }
     return res;
+}
+
+template <typename T>
+bool Matrix<T>::is_in_bound(size_t x, size_t y)
+{
+    return x >= 0 && x < mRows && y >= 0 && y < mCols;
 }
 
 template <typename T>
