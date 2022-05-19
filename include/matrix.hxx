@@ -135,6 +135,18 @@ size_t Matrix<T>::get_cols()
 }
 
 template <typename T>
+std::vector<T> &Matrix<T>::get_data()
+{
+    return mData;
+}
+
+template <typename T>
+const std::vector<T> &Matrix<T>::get_data() const
+{
+    return mData;
+}
+
+template <typename T>
 T Matrix<T>::at(size_t x, size_t y)
 {
     return mData[y * mCols + x];

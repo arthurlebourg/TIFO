@@ -20,11 +20,11 @@ void fill_buffer_pixelate(size_t miny, size_t maxy, unsigned char *pixels,
 void fill_buffer(size_t miny, size_t maxy, unsigned char *pixels);
 
 template <typename T>
-void fill_buffer(size_t miny, size_t maxy, unsigned char *pixels,
-                 Matrix<T> &mat);
+void fill_buffer(unsigned char *pixels, Matrix<T> &mat, size_t from_y,
+                 size_t to_y);
 
 template <typename T>
-void fill_buffer_dark_borders(size_t miny, size_t maxy, unsigned char *pixels,
-                              Matrix<T> &mat);
+void fill_buffer_dark_borders(unsigned char *pixels, Matrix<T> &mat,
+                              size_t from_y, size_t to_y);
 
 #include "filters.hxx"
