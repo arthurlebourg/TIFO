@@ -3,11 +3,13 @@
 #include <cstring>
 #include <iomanip>
 #include <iostream>
+#include <set>
 #include <thread>
 #include <vector>
 
 #include "canny.hh"
 #include "filters.hh"
+#include "octree.hh"
 
 const int max_threads = std::thread::hardware_concurrency();
 
@@ -81,6 +83,11 @@ int main(int argc, char *argv[])
     // auto small_ellipse = ellipse_kernel(2,2);
     auto square = square_kernel(3, 3);
 
+    auto cmp = [](Color a, Color b) {
+        return a.red() == b.red() && a.green() == b.green()
+            && a.blue() == b.blue();
+    };
+    std::set<Color, decltype(cmp)> unique_colors(cmp);
     int count;
     while (running)
     {
