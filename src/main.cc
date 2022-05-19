@@ -2,10 +2,12 @@
 #include <cstring>
 #include <iomanip>
 #include <iostream>
+#include <set>
 #include <thread>
 #include <vector>
 
 #include "color.hh"
+#include "octree.hh"
 
 const size_t screen_width = 1280;
 const size_t screen_height = 720;
@@ -124,7 +126,11 @@ int main()
     FILE *pipein = popen("ffmpeg -i /dev/video0 -f image2pipe -vcodec rawvideo "
                          "-pix_fmt rgba -framerate 25 -s 1280x720 -",
                          "r");
-
+    auto cmp = [](Color a, Color b) {
+        return a.red() == b.red() && a.green() == b.green()
+            && a.blue() == b.blue();
+    };
+    std::set<Color, decltype(cmp)> unique_colors(cmp);
     int count;
     while (running)
     {
