@@ -90,3 +90,19 @@ void fill_buffer(size_t miny, size_t maxy, unsigned char *pixels)
         }
     }
 }
+
+std::vector<Color> unique_colors(unsigned char *pixels)
+{
+    std::vector<Color> colors;
+    for (size_t y = 0; y < screen_height; y++)
+    {
+        for (size_t x = 0; x < screen_width; x++)
+        {
+            size_t offset = get_offset(x, y);
+            Color old_pixel = get_pixel(pixels, offset);
+
+            colors.push_back(old_pixel);
+        }
+    }
+    return colors;
+}

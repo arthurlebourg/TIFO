@@ -43,11 +43,7 @@ private:
 class Quantizer
 {
 public:
-    Quantizer()
-        : root_(std::make_shared<Node>(Node(0, this)))
-    {
-        // create level, list (size MAX_DEPTH) of list of nodes;
-    }
+    Quantizer();
 
     void add_color(Color c);
 

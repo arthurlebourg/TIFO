@@ -30,6 +30,7 @@ Node::Node(size_t level, Quantizer *parent)
         parent->add_level_node(level, std::make_shared<Node>(*this));
     }
 }
+
 bool Node::is_leaf()
 {
     return pixel_count_ > 0;
@@ -40,6 +41,8 @@ std::vector<std::shared_ptr<Node>> Node::get_leaves()
     std::vector<std::shared_ptr<Node>> nodes;
     for (auto i : children_)
     {
+        if (i == nullptr)
+            continue;
         if (i->is_leaf())
         {
             nodes.push_back(i);
@@ -114,6 +117,16 @@ Color Node::get_color()
 void Node::set_palette_index(size_t index)
 {
     palette_index_ = index;
+}
+
+Quantizer::Quantizer()
+{
+    // create level, list (size MAX_DEPTH) of list of nodes;
+    for (size_t i = 0; i < MAX_DEPTH; i++)
+    {
+        levels_.push_back(std::vector<std::shared_ptr<Node>>());
+    }
+    root_ = std::make_shared<Node>(Node(0, this));
 }
 
 void Quantizer::add_color(Color c)

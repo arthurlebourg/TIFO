@@ -11,7 +11,7 @@
 #include "filters.hh"
 #include "octree.hh"
 
-const int max_threads = std::thread::hardware_concurrency();
+// const int max_threads = std::thread::hardware_concurrency();
 
 int main(int argc, char *argv[])
 {
@@ -26,13 +26,13 @@ int main(int argc, char *argv[])
 
     SDL_RendererInfo info;
     SDL_GetRendererInfo(renderer, &info);
-    std::cout << "Renderer name: " << info.name << std::endl;
+    /*std::cout << "Renderer name: " << info.name << std::endl;
     std::cout << "Texture formats: " << std::endl;
     for (Uint32 i = 0; i < info.num_texture_formats; i++)
     {
         std::cout << SDL_GetPixelFormatName(info.texture_formats[i])
                   << std::endl;
-    }
+    }*/
 
     SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
                                              SDL_TEXTUREACCESS_STREAMING,
@@ -51,14 +51,16 @@ int main(int argc, char *argv[])
     FILE *pipein;
     if (argc == 1)
     {
-        pipein = popen("ffmpeg -stream_loop -1 -i /dev/video0  -f image2pipe "
+        pipein = popen("ffmpeg -loglevel error -stream_loop -1 -i /dev/video0  "
+                       "-f image2pipe "
                        "-vcodec rawvideo "
                        "-pix_fmt rgba -framerate 25 -s 1280x720 -",
                        "r");
     }
     else
     {
-        auto command = std::string("ffmpeg -stream_loop -1 -i ");
+        auto command =
+            std::string("ffmpeg -loglevel error -stream_loop -1 -i ");
         command.append(argv[1]);
         command.append(" -f image2pipe "
                        "-vcodec rawvideo "
@@ -83,11 +85,6 @@ int main(int argc, char *argv[])
     // auto small_ellipse = ellipse_kernel(2,2);
     auto square = square_kernel(3, 3);
 
-    auto cmp = [](Color a, Color b) {
-        return a.red() == b.red() && a.green() == b.green()
-            && a.blue() == b.blue();
-    };
-    std::set<Color, decltype(cmp)> unique_colors(cmp);
     int count;
     while (running)
     {
@@ -124,6 +121,21 @@ int main(int argc, char *argv[])
             break;
 
         // preprocess
+        std::vector<Color> colors = unique_colors(pixels);
+        std::cout << "colors: " << colors.size() << " | " << std::endl;
+        Quantizer q;
+        std::cout << "test" << std::endl;
+
+        for (auto i : colors)
+            q.add_color(i);
+        std::cout << "test" << std::endl;
+
+        std::vector<Color> palette = q.make_palette(16);
+        std::cout << "color palette: " << palette.size() << " | " << std::endl;
+        for (auto i : palette)
+        {
+            std::cout << i << std::endl;
+        }
 
         // Grayscale
         buffer1.set_values(to_grayscale(pixels));
