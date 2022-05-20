@@ -37,3 +37,7 @@ void fill_buffer_dark_borders(size_t miny, size_t maxy, unsigned char *pixels,
         }
     }
 }
+
+template <typename T>
+void fill_buffer_palette(size_t miny, size_t maxy, unsigned char *pixels,
+                         Matrix<T> &mat, Quantizer q);

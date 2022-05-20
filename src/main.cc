@@ -85,7 +85,12 @@ int main(int argc, char *argv[])
     // auto small_ellipse = ellipse_kernel(2,2);
     auto square = square_kernel(3, 3);
 
+    Quantizer q;
+    std::vector<Color> palette;
+    int palette_number = 16;
+
     int count;
+    bool init = true;
     while (running)
     {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
@@ -112,17 +117,18 @@ int main(int argc, char *argv[])
             if (SDL_KEYDOWN == event.type
                 && SDL_SCANCODE_P == event.key.keysym.scancode)
             {
+                q = Quantizer();
+                palette.clear();
                 std::cout << "generating new color palette" << std::endl;
                 std::vector<Color> colors = unique_colors(pixels);
                 std::cout << "colors: " << colors.size() << " | " << std::endl;
-                Quantizer q;
 
                 for (auto i : colors)
                 {
                     q.add_color(i);
                 }
 
-                std::vector<Color> palette = q.make_palette(16);
+                palette = q.make_palette(palette_number);
                 std::cout << "color palette: " << palette.size() << " | "
                           << std::endl;
                 for (auto i : palette)
@@ -136,6 +142,26 @@ int main(int argc, char *argv[])
 
         // Read a frame from the input pipe into the buffer
         count = fread(pixels, 1, screen_width * screen_height * 4, pipein);
+        if (init)
+        {
+            init = false;
+            std::cout << "generating new color palette" << std::endl;
+            std::vector<Color> colors = unique_colors(pixels);
+            std::cout << "colors: " << colors.size() << " | " << std::endl;
+
+            for (auto i : colors)
+            {
+                q.add_color(i);
+            }
+
+            palette = q.make_palette(palette_number);
+            std::cout << "color palette: " << palette.size() << " | "
+                      << std::endl;
+            for (auto i : palette)
+            {
+                std::cout << i << std::endl;
+            }
+        }
 
         // If we didn't get a frame of video, we're probably at the end
         if (count != screen_width * screen_height * 4)
@@ -187,7 +213,7 @@ int main(int argc, char *argv[])
         //     threads[i].join();
         // }
 
-        fill_buffer(0, screen_height, pixels);
+        fill_buffer_palette(0, screen_height, q, palette, pixels);
 
         // SDL again
 

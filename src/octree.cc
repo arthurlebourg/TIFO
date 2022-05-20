@@ -86,7 +86,14 @@ size_t Node::get_palette_index(Color c, size_t level)
     }
     else
     {
-        return children_[0]->get_palette_index(c, level + 1);
+        for (auto i : children_)
+        {
+            if (i == nullptr)
+                continue;
+            return i->get_palette_index(c, level + 1);
+        }
+        std::cout << "BIG ERROR" << std::endl;
+        return palette_index_;
     }
 }
 

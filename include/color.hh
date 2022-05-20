@@ -59,7 +59,8 @@ private:
 inline std::ostream &operator<<(std::ostream &os, Color &col)
 {
     return os << "(R: " << col.red() << ", G: " << col.green()
-              << ", B: " << col.blue() << ")" << std::endl;
+              << ", B: " << col.blue() << ") hex: " << std::hex << col.red()
+              << col.green() << col.blue() << std::dec << std::endl;
 }
 
 inline Color operator+(const Color &c, unsigned int t)

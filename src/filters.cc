@@ -91,6 +91,23 @@ void fill_buffer(size_t miny, size_t maxy, unsigned char *pixels)
     }
 }
 
+void fill_buffer_palette(size_t miny, size_t maxy, Quantizer q,
+                         std::vector<Color> palette, unsigned char *pixels)
+{
+    for (size_t y = miny; y < maxy; y++)
+    {
+        for (size_t x = 0; x < screen_width; x++)
+        {
+            size_t offset = get_offset(x, y);
+            Color old_pixel = get_pixel(pixels, offset);
+            size_t index = q.get_palette_index(old_pixel);
+            Color new_pixel = palette[index];
+
+            set_pixel(pixels, offset, new_pixel);
+        }
+    }
+}
+
 std::vector<Color> unique_colors(unsigned char *pixels)
 {
     std::vector<Color> colors;

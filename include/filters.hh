@@ -3,6 +3,7 @@
 
 #include "color.hh"
 #include "image.hh"
+#include "octree.hh"
 
 const size_t screen_width = 1280;
 const size_t screen_height = 720;
@@ -19,6 +20,9 @@ void fill_buffer_pixelate(size_t miny, size_t maxy, unsigned char *pixels,
                           size_t pixel_size);
 
 void fill_buffer(size_t miny, size_t maxy, unsigned char *pixels);
+
+void fill_buffer_palette(size_t miny, size_t maxy, Quantizer q,
+                         std::vector<Color> palette, unsigned char *pixels);
 
 template <typename T>
 void fill_buffer(size_t miny, size_t maxy, unsigned char *pixels,
