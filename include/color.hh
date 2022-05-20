@@ -44,7 +44,7 @@ public:
     Color normalized(size_t pixel_count)
     {
         if (pixel_count == 0)
-            return Color(255, green_, blue_, a_);
+            return Color(red_, green_, blue_, a_);
         return Color(red_ / pixel_count, green_ / pixel_count,
                      blue_ / pixel_count, a_);
     }

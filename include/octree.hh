@@ -17,7 +17,7 @@ size_t get_color_index(Color c, size_t level);
 class Node
 {
 public:
-    Node(size_t level, Quantizer *parent);
+    Node();
 
     bool is_leaf();
 
