@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 
     Quantizer q;
     std::vector<Color> palette;
-    int palette_number = 16;
+    int palette_number = 256;
 
     int count;
     bool init = true;
