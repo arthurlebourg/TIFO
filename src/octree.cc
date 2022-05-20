@@ -20,7 +20,7 @@ size_t get_color_index(Color c, size_t level)
 }
 
 Node::Node(size_t level, Quantizer *parent)
-    : c_(Color(0, 0, 0, 0))
+    : c_(Color(0, 0, 0, 255))
     , pixel_count_(0)
     , palette_index_(0)
 {
@@ -66,7 +66,7 @@ void Node::add_color(Color c, size_t level, Quantizer *parent)
         return;
     }
     size_t index = get_color_index(c, level);
-    if (!children_[index])
+    if (children_[index] == nullptr)
     {
         children_[index] = std::make_shared<Node>(Node(level, parent));
     }
@@ -101,17 +101,20 @@ size_t Node::remove_leaves()
             continue;
         }
 
+        std::cout << "c_: " << c_ << std::endl;
+        std::cout << "i->c_: " << i->c_ << std::endl;
         c_ = c_ + i->c_;
         pixel_count_ += i->pixel_count_;
         result++;
     }
-    children_ = std::vector<std::shared_ptr<Node>>(8, nullptr);
+    // children_ = std::vector<std::shared_ptr<Node>>(8, nullptr);
+    children_.clear();
     return result - 1;
 }
 
 Color Node::get_color()
 {
-    return c_;
+    return c_.normalized(pixel_count_);
 }
 
 void Node::set_palette_index(size_t index)
@@ -139,6 +142,7 @@ std::vector<Color> Quantizer::make_palette(size_t color_amount)
     std::vector<Color> palette;
     size_t palette_index = 0;
     size_t leaf_count = get_leaf_nodes().size();
+    std::cout << "leaf count: " << leaf_count << std::endl;
     for (size_t level = MAX_DEPTH - 1; level < MAX_DEPTH; level--)
     {
         if (levels_[level].size() > 0)
@@ -154,9 +158,10 @@ std::vector<Color> Quantizer::make_palette(size_t color_amount)
             levels_[level].clear();
         }
     }
+    std::cout << "leaf count: " << get_leaf_nodes().size() << std::endl;
     for (auto i : get_leaf_nodes())
     {
-        if (palette_index > color_amount)
+        if (palette_index >= color_amount)
         {
             break;
         }

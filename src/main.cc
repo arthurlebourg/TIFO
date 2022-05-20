@@ -109,6 +109,27 @@ int main(int argc, char *argv[])
                                              : "SDL_UpdateTexture()")
                           << std::endl;
             }
+            if (SDL_KEYDOWN == event.type
+                && SDL_SCANCODE_P == event.key.keysym.scancode)
+            {
+                std::cout << "generating new color palette" << std::endl;
+                std::vector<Color> colors = unique_colors(pixels);
+                std::cout << "colors: " << colors.size() << " | " << std::endl;
+                Quantizer q;
+
+                for (auto i : colors)
+                {
+                    q.add_color(i);
+                }
+
+                std::vector<Color> palette = q.make_palette(16);
+                std::cout << "color palette: " << palette.size() << " | "
+                          << std::endl;
+                for (auto i : palette)
+                {
+                    std::cout << i << std::endl;
+                }
+            }
         }
 
         // Not SDL
@@ -121,24 +142,9 @@ int main(int argc, char *argv[])
             break;
 
         // preprocess
-        std::vector<Color> colors = unique_colors(pixels);
-        std::cout << "colors: " << colors.size() << " | " << std::endl;
-        Quantizer q;
-        std::cout << "test" << std::endl;
-
-        for (auto i : colors)
-            q.add_color(i);
-        std::cout << "test" << std::endl;
-
-        std::vector<Color> palette = q.make_palette(16);
-        std::cout << "color palette: " << palette.size() << " | " << std::endl;
-        for (auto i : palette)
-        {
-            std::cout << i << std::endl;
-        }
 
         // Grayscale
-        buffer1.set_values(to_grayscale(pixels));
+        /*buffer1.set_values(to_grayscale(pixels));
 
         // // Filter out noise (slow)
         // buffer1.convolve(gauss, buffer2);
@@ -165,7 +171,7 @@ int main(int argc, char *argv[])
             return ((a - minmax.first) / (minmax.second - minmax.first)) * 255;
         };
         output.apply(rescale);
-
+        */
         // // Process frame
         // double y_num = screen_height / max_threads;
         // std::vector<std::thread> threads(max_threads);
@@ -181,7 +187,7 @@ int main(int argc, char *argv[])
         //     threads[i].join();
         // }
 
-        fill_buffer_dark_borders(0, screen_height, pixels, output);
+        fill_buffer(0, screen_height, pixels);
 
         // SDL again
 

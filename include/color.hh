@@ -13,55 +13,62 @@ public:
         , a_(0)
     {}
 
-    Color(unsigned char red, unsigned char green, unsigned char blue,
-          unsigned char a)
+    Color(unsigned int red, unsigned int green, unsigned int blue,
+          unsigned int a)
         : red_(red)
         , green_(green)
         , blue_(blue)
         , a_(a)
     {}
 
-    unsigned char red() const
+    unsigned int red() const
     {
         return red_;
     }
 
-    unsigned char green() const
+    unsigned int green() const
     {
         return green_;
     }
 
-    unsigned char blue() const
+    unsigned int blue() const
     {
         return blue_;
     }
 
-    unsigned char a() const
+    unsigned int a() const
     {
         return a_;
     }
 
+    Color normalized(size_t pixel_count)
+    {
+        return Color(red_ / pixel_count, green_ / pixel_count,
+                     blue_ / pixel_count, a_);
+    }
+
 private:
-    unsigned char red_;
-    unsigned char green_;
-    unsigned char blue_;
-    unsigned char a_;
+    unsigned int red_;
+    unsigned int green_;
+    unsigned int blue_;
+    unsigned int a_;
 };
 
 inline std::ostream &operator<<(std::ostream &os, Color &col)
 {
-    return os << "(R: " << (int)col.red() << ", G: " << (int)col.green()
-              << ", B: " << (int)col.blue() << ")" << std::endl;
+    return os << "(R: " << col.red() << ", G: " << col.green()
+              << ", B: " << col.blue() << ")" << std::endl;
 }
 
-inline Color operator+(const Color &c, double t)
+inline Color operator+(const Color &c, unsigned int t)
 {
-    int red = t + c.red();
-    int green = t + c.green();
-    int blue = t + c.blue();
+    unsigned int red = t + c.red();
+    unsigned int green = t + c.green();
+    unsigned int blue = t + c.blue();
     // prevents signed overflow
-    return Color(red > 255 ? 255 : red, green > 255 ? 255 : green,
-                 blue > 255 ? 255 : blue, c.a());
+    // return Color(red > 255 ? 255 : red, green > 255 ? 255 : green,
+    //             blue > 255 ? 255 : blue, c.a());
+    return Color(red, green, blue, c.a());
 }
 
 inline Color operator+(const Color &lhs, const Color &rhs)
@@ -70,8 +77,9 @@ inline Color operator+(const Color &lhs, const Color &rhs)
     unsigned int green = lhs.green() + rhs.green();
     unsigned int blue = lhs.blue() + rhs.blue();
     // prevents signed overflow
-    return Color(red > 255 ? 255 : red, green > 255 ? 255 : green,
-                 blue > 255 ? 255 : blue, lhs.a());
+    // return Color(red > 255 ? 255 : red, green > 255 ? 255 : green,
+    // blue > 255 ? 255 : blue, lhs.a());
+    return Color(red, green, blue, lhs.a());
 }
 
 inline Color operator-(const Color &lhs, const Color &rhs)
