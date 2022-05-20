@@ -25,7 +25,7 @@ Node::Node(size_t level, Quantizer *parent)
     , palette_index_(0)
 {
     children_ = std::vector<std::shared_ptr<Node>>(8, nullptr);
-    if (level < MAX_DEPTH)
+    if (level < MAX_DEPTH - 1)
     {
         parent->add_level_node(level, std::make_shared<Node>(*this));
     }
@@ -140,11 +140,18 @@ void Quantizer::add_color(Color c)
 std::vector<Color> Quantizer::make_palette(size_t color_amount)
 {
     std::vector<Color> palette;
+    for (auto i : levels_[MAX_DEPTH - 2])
+    {
+        Color clr = i->get_color();
+        std::cout << clr << std::endl;
+    }
     size_t palette_index = 0;
     size_t leaf_count = get_leaf_nodes().size();
     std::cout << "leaf count: " << leaf_count << std::endl;
     for (size_t level = MAX_DEPTH - 1; level < MAX_DEPTH; level--)
     {
+        std::cout << "level: " << level << " size: " << levels_[level].size()
+                  << std::endl;
         if (levels_[level].size() > 0)
         {
             for (auto i : levels_[level])
