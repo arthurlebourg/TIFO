@@ -24,6 +24,9 @@ void fill_buffer(size_t miny, size_t maxy, unsigned char *pixels);
 void fill_buffer_palette(size_t miny, size_t maxy, Quantizer q,
                          std::vector<Color> palette, unsigned char *pixels);
 
+void fill_buffer_palette_debug(size_t miny, size_t maxy, Quantizer q,
+                               std::vector<Color> palette,
+                               unsigned char *pixels);
 template <typename T>
 void fill_buffer(size_t miny, size_t maxy, unsigned char *pixels,
                  Matrix<T> &mat);

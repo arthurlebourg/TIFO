@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 
     Quantizer q;
     std::vector<Color> palette;
-    int palette_number = 256;
+    int palette_number = 1024;
 
     int count;
     bool init = true;
@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
         //     threads[i].join();
         // }
 
-        fill_buffer_palette(0, screen_height, q, palette, pixels);
+        fill_buffer_palette_debug(0, screen_height, q, palette, pixels);
 
         // SDL again
 
