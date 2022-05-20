@@ -87,7 +87,7 @@ int main(int argc, char *argv[])
 
     Quantizer q;
     std::vector<Color> palette;
-    int palette_number = 1024;
+    int palette_number = 256;
 
     int count;
     bool init = true;
@@ -142,6 +142,11 @@ int main(int argc, char *argv[])
 
         // Read a frame from the input pipe into the buffer
         count = fread(pixels, 1, screen_width * screen_height * 4, pipein);
+
+        // If we didn't get a frame of video, we're probably at the end
+        if (count != screen_width * screen_height * 4)
+            break;
+
         if (init)
         {
             init = false;
@@ -162,15 +167,13 @@ int main(int argc, char *argv[])
                 std::cout << i << std::endl;
             }
         }
-
-        // If we didn't get a frame of video, we're probably at the end
-        if (count != screen_width * screen_height * 4)
-            break;
+        fill_buffer_palette_debug(0, screen_height, q, palette, pixels);
+        fill_buffer(0, screen_height, pixels);
 
         // preprocess
 
         // Grayscale
-        /*buffer1.set_values(to_grayscale(pixels));
+        buffer1.set_values(to_grayscale(pixels));
 
         // // Filter out noise (slow)
         // buffer1.convolve(gauss, buffer2);
@@ -197,7 +200,7 @@ int main(int argc, char *argv[])
             return ((a - minmax.first) / (minmax.second - minmax.first)) * 255;
         };
         output.apply(rescale);
-        */
+
         // // Process frame
         // double y_num = screen_height / max_threads;
         // std::vector<std::thread> threads(max_threads);
@@ -213,7 +216,7 @@ int main(int argc, char *argv[])
         //     threads[i].join();
         // }
 
-        fill_buffer_palette_debug(0, screen_height, q, palette, pixels);
+        fill_buffer_dark_borders(0, screen_height, pixels, output);
 
         // SDL again
 

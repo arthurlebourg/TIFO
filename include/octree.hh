@@ -7,7 +7,7 @@
 
 #include "color.hh"
 
-#define MAX_DEPTH 16
+#define MAX_DEPTH 8
 
 class Quantizer;
 class Node;

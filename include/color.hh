@@ -43,8 +43,6 @@ public:
 
     Color normalized(size_t pixel_count)
     {
-        if (pixel_count == 0)
-            return Color(red_, green_, blue_, a_);
         return Color(red_ / pixel_count, green_ / pixel_count,
                      blue_ / pixel_count, a_);
     }
@@ -59,8 +57,9 @@ private:
 inline std::ostream &operator<<(std::ostream &os, Color &col)
 {
     return os << "(R: " << col.red() << ", G: " << col.green()
-              << ", B: " << col.blue() << ") hex: " << std::hex << col.red()
-              << col.green() << col.blue() << std::dec << std::endl;
+              << ", B: " << col.blue() << ", A: " << col.a()
+              << ") hex: " << std::hex << col.red() << col.green() << col.blue()
+              << std::dec << std::endl;
 }
 
 inline Color operator+(const Color &c, unsigned int t)
