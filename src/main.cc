@@ -8,7 +8,6 @@
 #include "canny.hh"
 #include "filters.hh"
 #include "gauss.hh"
-#include "thread_helper.hh"
 
 int main(int argc, char *argv[])
 {
@@ -67,12 +66,10 @@ int main(int argc, char *argv[])
     std::vector<Matrix<float>> buffers(
         10, Matrix<float>(screen_height, screen_width, 0));
 
-    // auto gauss = gauss_kernel(3);
+    auto gauss = gauss_5();
     // auto big_ellipse = ellipse_kernel(3,3);
     // auto small_ellipse = ellipse_kernel(2,2);
-    auto square = square_kernel(3, 3);
-
-    size_t y_range = screen_height / max_threads;
+    // auto square = square_kernel(3, 3);
 
     int count;
     while (running)
@@ -118,16 +115,13 @@ int main(int argc, char *argv[])
         // buffers[0].convolve(gauss, buffers[2]);
 
         // Intensity gradients
-        run_on_threads(y_range, intensity_gradients, &buffers[0], &buffers[3],
-                       &buffers[4]);
+        intensity_gradients(buffers[0], buffers[3], buffers[4]);
 
-        run_on_threads(y_range, non_maximum_suppression, &buffers[3],
-                       &buffers[4], &buffers[5]);
+        non_maximum_suppression(buffers[3], buffers[4], buffers[5]);
 
-        run_on_threads(y_range, weak_strong_edges_thresholding, &buffers[5],
-                       &buffers[6]);
+        weak_strong_edges_thresholding(buffers[5], buffers[6]);
 
-        run_on_threads(y_range, weak_edges_removal, &buffers[6], &buffers[7]);
+        weak_edges_removal(buffers[6], buffers[7]);
 
         // buffers[7].morph(square, true, buffers[8]);
 
@@ -142,8 +136,8 @@ int main(int argc, char *argv[])
         };
         output.apply(rescale);
 
-        fill_buffer_dark_borders(pixels, &output, 0, screen_height);
-        // fill_buffer(pixels, &output, 0, screen_height);
+        fill_buffer_dark_borders(pixels, &output);
+        // fill_buffer(pixels, &output);
 
         // SDL again
 

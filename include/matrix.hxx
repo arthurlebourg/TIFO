@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <tbb/parallel_for.h>
 
 #include "matrix.hh"
 
@@ -10,14 +11,7 @@ void Matrix<T>::set_values(std::vector<T> val)
         std::cerr << "Error: vector length != matrix size" << std::endl;
         return;
     }
-    size_t index = 0;
-    for (size_t i = 0; i < mRows; i++)
-    {
-        for (size_t j = 0; j < mCols; j++)
-        {
-            mData[i * mCols + j] = val[index++];
-        }
-    }
+    mData = val; // copy, equivalent to std::copy
 }
 
 template <typename T>
@@ -42,10 +36,13 @@ std::pair<T, T> Matrix<T>::get_minmax()
 template <typename T>
 void Matrix<T>::apply(const std::function<T(T, size_t)> &func)
 {
-    for (size_t i = 0; i < mRows * mCols; i++)
-    {
-        mData[i] = func(mData[i], i);
-    }
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, mRows * mCols),
+                      [&](tbb::blocked_range<size_t> r) {
+                          for (size_t i = r.begin(); i < r.end(); i++)
+                          {
+                              mData[i] = func(mData[i], i);
+                          }
+                      });
 }
 
 template <typename T>
@@ -54,32 +51,40 @@ void Matrix<T>::convolve(Matrix<T> &kernel, Matrix<T> &output)
     int kCenterX = kernel.mCols / 2;
     int kCenterY = kernel.mRows / 2;
 
-    for (size_t i = 0; i < mRows; i++)
-    {
-        for (size_t j = 0; j < mCols; j++)
-        {
-            for (size_t m = 0; m < kernel.mRows; m++)
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, output.get_rows()),
+        [&](tbb::blocked_range<size_t> r) {
+            for (size_t i = r.begin(); i < r.end(); i++)
             {
-                size_t mm = kernel.mRows - 1 - m;
-
-                for (size_t n = 0; n < kernel.mCols; n++)
+                for (size_t j = 0; j < mCols; j++)
                 {
-                    size_t nn = kernel.mCols - 1 - n;
+                    T acc{};
 
-                    // index of input signal, used for checking boundary
-                    size_t ii = i + (kCenterY - mm);
-                    size_t jj = j + (kCenterX - nn);
-
-                    // ignore input samples which are out of bound
-                    if (ii < mRows && jj < mCols)
+                    for (size_t m = 0; m < kernel.mRows; m++)
                     {
-                        output.mData[i * mCols + j] += mData[ii * mCols + jj]
-                            * kernel.mData[m * kernel.mCols + n];
+                        size_t mm = kernel.mRows - 1 - m;
+
+                        for (size_t n = 0; n < kernel.mCols; n++)
+                        {
+                            size_t nn = kernel.mCols - 1 - n;
+
+                            // index of input signal, used for checking boundary
+                            size_t ii = i + (kCenterY - mm);
+                            size_t jj = j + (kCenterX - nn);
+
+                            // ignore input samples which are out of bound
+                            if (ii < mRows && jj < mCols)
+                            {
+                                acc += mData[ii * mCols + jj]
+                                    * kernel.mData[m * kernel.mCols + n];
+                            }
+                        }
                     }
+
+                    output.mData[i * mCols + j] = acc;
                 }
             }
-        }
-    }
+        });
 }
 
 template <typename T>
@@ -87,39 +92,45 @@ void Matrix<T>::morph(Matrix<T> &kernel, bool is_dilation, Matrix<T> &output)
 {
     float val;
     size_t sz = (kernel.get_rows() - 1) / 2;
-    for (size_t x = 0; x < mRows; x++)
-    {
-        for (size_t y = 0; y < mCols; y++)
-        {
-            if (isonboundary(x, y, sz))
+
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, output.get_rows()),
+        [&](tbb::blocked_range<size_t> r) {
+            for (size_t i = r.begin(); i < r.end(); i++)
             {
-                val = 0;
-            }
-            else
-            {
-                std::vector<float> list(kernel.get_rows() * kernel.get_cols());
-                for (size_t i = 0; i < kernel.get_rows(); i++)
+                for (size_t j = 0; j < mCols; j++)
                 {
-                    for (size_t j = 0; j < kernel.get_cols(); j++)
+                    if (isonboundary(i, j, sz))
                     {
-                        if (kernel.at(j, i) == 1)
+                        val = 0;
+                    }
+                    else
+                    {
+                        std::vector<float> list;
+                        for (size_t ii = 0; ii < kernel.get_rows(); ii++)
                         {
-                            list.push_back(at(y + j - sz, x + i - sz));
+                            for (size_t jj = 0; jj < kernel.get_cols(); jj++)
+                            {
+                                if (kernel.at(jj, ii) == 1)
+                                {
+                                    list.push_back(
+                                        at(j + jj - sz, i + ii - sz));
+                                }
+                            }
+                        }
+                        if (is_dilation)
+                        {
+                            val = *std::max_element(list.begin(), list.end());
+                        }
+                        else
+                        {
+                            val = *std::min_element(list.begin(), list.end());
                         }
                     }
-                }
-                if (is_dilation)
-                {
-                    val = *std::max_element(list.begin(), list.end());
-                }
-                else
-                {
-                    val = *std::min_element(list.begin(), list.end());
+                    output.set_value(j, i, val);
                 }
             }
-            output.set_value(y, x, val);
-        }
-    }
+        });
 }
 
 template <typename T>
