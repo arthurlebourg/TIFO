@@ -9,9 +9,8 @@
 
 #include "canny.hh"
 #include "filters.hh"
+#include "gauss.hh"
 #include "octree.hh"
-
-// const int max_threads = std::thread::hardware_concurrency();
 
 int main(int argc, char *argv[])
 {
@@ -64,26 +63,18 @@ int main(int argc, char *argv[])
         command.append(argv[1]);
         command.append(" -f image2pipe "
                        "-vcodec rawvideo "
-                       "-pix_fmt rgba -framerate 25 "
+                       "-pix_fmt rgba -r 25 "
                        "-s 1280x720 -");
         pipein = popen(command.c_str(), "r");
     }
 
-    auto buffer1 = Matrix<float>(screen_height, screen_width, 0);
-    auto buffer2 = Matrix<float>(screen_height, screen_width, 0);
-    auto buffer3 = Matrix<float>(screen_height, screen_width, 0);
-    auto buffer4 = Matrix<float>(screen_height, screen_width, 0);
-    auto buffer5 = Matrix<float>(screen_height, screen_width, 0);
-    auto buffer6 = Matrix<float>(screen_height, screen_width, 0);
-    auto buffer7 = Matrix<float>(screen_height, screen_width, 0);
+    std::vector<Matrix<float>> buffers(
+        10, Matrix<float>(screen_height, screen_width, 0));
 
-    auto weak_strong_edges = Matrix<Edge>(screen_height, screen_width, NONE);
-    // auto edges = Matrix<Edge>(screen_height, screen_width, NONE);
-
-    auto gauss = gauss_kernel(3);
+    auto gauss = gauss_5();
     // auto big_ellipse = ellipse_kernel(3,3);
     // auto small_ellipse = ellipse_kernel(2,2);
-    auto square = square_kernel(3, 3);
+    // auto square = square_kernel(3, 3);
 
     Quantizer q;
     std::vector<Color> palette;
@@ -167,56 +158,39 @@ int main(int argc, char *argv[])
                 std::cout << i << std::endl;
             }
         }
-        fill_buffer_palette_debug(0, screen_height, q, palette, pixels);
-        fill_buffer(0, screen_height, pixels);
 
         // preprocess
 
         // Grayscale
-        buffer1.set_values(to_grayscale(pixels));
+        buffers[0].set_values(to_grayscale(pixels));
 
         // // Filter out noise (slow)
-        // buffer1.convolve(gauss, buffer2);
+        gaussian_blur(buffers[0], buffers[1], buffers[2]);
 
         // Intensity gradients
-        intensity_gradients(buffer1, buffer3, buffer4);
+        intensity_gradients(buffers[0], buffers[3], buffers[4]);
 
-        non_maximum_suppression(buffer3, buffer4, buffer5);
+        non_maximum_suppression(buffers[3], buffers[4], buffers[5]);
 
-        weak_strong_edges_thresholding(buffer5, weak_strong_edges);
+        weak_strong_edges_thresholding(buffers[5], buffers[6]);
 
-        weak_edges_removal(weak_strong_edges, buffer6);
+        weak_edges_removal(buffers[6], buffers[7]);
 
-        buffer6.morph(square, true, buffer7);
+        // buffers[7].morph(square, true, buffers[8]);
 
-        auto &output = buffer7;
+        auto &output = buffers[7];
 
         // Remap to RGB values
         auto minmax = output.get_minmax();
-        // std::cout << minmax.first << ", " << minmax.second << std::endl;
 
         auto rescale = [minmax](float a, size_t i) {
             i = i;
-            return ((a - minmax.first) / (minmax.second - minmax.first)) * 255;
+            return ((a - minmax.first) * 255 / (minmax.second - minmax.first));
         };
         output.apply(rescale);
 
-        // // Process frame
-        // double y_num = screen_height / max_threads;
-        // std::vector<std::thread> threads(max_threads);
-        // for (int i = 0; i < max_threads - 1; i++)
-        // {
-        //     threads[i] =
-        //         std::thread(fill_buffer, i * y_num, (i + 1) * y_num,
-        //         pixels);
-        // }
-        // fill_buffer((max_threads - 1) * y_num, max_threads * y_num,
-        // pixels); for (int i = 0; i < max_threads - 1; i++)
-        // {
-        //     threads[i].join();
-        // }
-
-        fill_buffer_dark_borders(0, screen_height, pixels, output);
+        fill_buffer_palette(q, palette, pixels);
+        fill_buffer_dark_borders(pixels, &output);
 
         // SDL again
 
