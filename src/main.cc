@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
         buffers[0].set_values(to_grayscale(pixels));
 
         // // Filter out noise (slow)
-        // buffers[0].convolve(gauss, buffers[2]);
+        gaussian_blur(buffers[0], buffers[1], buffers[2]);
 
         // Intensity gradients
         intensity_gradients(buffers[0], buffers[3], buffers[4]);
