@@ -1,6 +1,6 @@
 CXX      := -c++
 CXXFLAGS := -pedantic-errors -Wall -Wextra -Werror -O3 -pthread -march=native 
-LDFLAGS  := -L/usr/lib -lstdc++ -lm -lSDL2
+LDFLAGS  := -L/usr/lib -lstdc++ -lm -lSDL2 -ltbb
 OBJ_DIR  := ./build
 BIN_DIR  := ./bin
 TARGET   := tifo
