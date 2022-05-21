@@ -52,54 +52,53 @@ void intensity_gradients(Matrix<float> &input, Matrix<float> &gradient_out,
 void non_maximum_suppression(Matrix<float> &gradient_in,
                              Matrix<float> &angle_in, Matrix<float> &output)
 {
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, gradient_in.get_rows()),
-                      [&](tbb::blocked_range<size_t> r) {
-                          for (size_t i = r.begin(); i < r.end(); i++)
-                          {
-                              for (size_t j = 0; j < gradient_in.get_cols();
-                                   j++)
-                              {
-                                  float angle = angle_in.safe_at(j, i);
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, gradient_in.get_rows()),
+        [&](tbb::blocked_range<size_t> r) {
+            for (size_t i = r.begin(); i < r.end(); i++)
+            {
+                for (size_t j = 0; j < gradient_in.get_cols(); j++)
+                {
+                    float angle = angle_in.safe_at(j, i) * 180 / M_PI;
 
-                                  if (angle < 0)
-                                      angle += 180;
+                    if (angle < 0)
+                        angle += 180;
 
-                                  float q = 255, r = 255;
+                    float q = 256, r = 256;
 
-                                  // 0°
-                                  if ((angle >= 0 && angle < 22.5)
-                                      || (angle >= 157.5 && angle <= 180))
-                                  {
-                                      q = gradient_in.safe_at(j, i + 1);
-                                      r = gradient_in.safe_at(j, i - 1);
-                                  }
-                                  // 45°
-                                  else if (angle >= 22.5 && angle < 67.5)
-                                  {
-                                      q = gradient_in.safe_at(j + 1, i - 1);
-                                      r = gradient_in.safe_at(j - 1, i + 1);
-                                  }
-                                  // 90°
-                                  else if (angle >= 67.5 && angle < 112.5)
-                                  {
-                                      q = gradient_in.safe_at(j + 1, i);
-                                      r = gradient_in.safe_at(j - 1, i);
-                                  }
-                                  // 135°
-                                  else if (angle >= 112.5 && angle < 157.5)
-                                  {
-                                      q = gradient_in.safe_at(j - 1, i - 1);
-                                      r = gradient_in.safe_at(j + 1, i + 1);
-                                  }
+                    // 0°
+                    if (angle < 22.5 || angle >= 157.5)
+                    {
+                        q = gradient_in.safe_at(j + 1, i);
+                        r = gradient_in.safe_at(j - 1, i);
+                    }
+                    // 45°
+                    else if (angle >= 22.5 && angle < 67.5)
+                    {
+                        q = gradient_in.safe_at(j - 1, i + 1);
+                        r = gradient_in.safe_at(j + 1, i - 1);
+                    }
+                    // 90°
+                    else if (angle >= 67.5 && angle < 112.5)
+                    {
+                        q = gradient_in.safe_at(j, i + 1);
+                        r = gradient_in.safe_at(j, i - 1);
+                    }
+                    // 135°
+                    else if (angle >= 112.5 && angle < 157.5)
+                    {
+                        q = gradient_in.safe_at(j - 1, i - 1);
+                        r = gradient_in.safe_at(j + 1, i + 1);
+                    }
 
-                                  float value = gradient_in.get_value(j, i);
-                                  if (value >= q && value >= r)
-                                      output.set_value(j, i, value);
-                                  else
-                                      output.set_value(j, i, 0);
-                              }
-                          }
-                      });
+                    float value = gradient_in.get_value(j, i);
+                    if (value >= q && value >= r)
+                        output.set_value(j, i, value);
+                    else
+                        output.set_value(j, i, 0);
+                }
+            }
+        });
 }
 
 void weak_strong_edges_thresholding(Matrix<float> &input, Matrix<float> &output)
@@ -130,8 +129,8 @@ void weak_strong_edges_thresholding(Matrix<float> &input, Matrix<float> &output)
 }
 
 const std::pair<int8_t, int8_t> NEIGHBOURS[] = {
-    { -1, -1 }, { -1, 0 }, { -1, 1 }, { 0, -1 }, { 0, 0 },
-    { 0, 1 },   { 1, -1 }, { 1, 0 },  { 1, 1 },
+    { -1, -1 }, { 0, -1 }, { 1, -1 }, { -1, 0 }, { 0, 0 },
+    { 1, 0 },   { -1, 1 }, { 0, 1 },  { 1, 1 },
 };
 
 void weak_edges_removal(Matrix<float> &input, Matrix<float> &output)

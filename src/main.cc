@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
     bool palette_init = false;
     bool generate_palette = false;
     bool dark_borders = false;
+    bool edges_only = false;
     bool pixelate = false;
 
     while (running)
@@ -115,6 +116,11 @@ int main(int argc, char *argv[])
                 if (SDL_SCANCODE_B == event.key.keysym.scancode)
                 {
                     dark_borders = !dark_borders;
+                    edges_only = false;
+                }
+                if (SDL_SCANCODE_E == event.key.keysym.scancode)
+                {
+                    edges_only = !dark_borders && !edges_only;
                 }
                 if (SDL_SCANCODE_N == event.key.keysym.scancode)
                 {
@@ -155,8 +161,15 @@ int main(int argc, char *argv[])
         {
             to_grayscale(raw_buffer, canny_buffers[0]);
             edge_detection(canny_buffers);
-            auto &border_mask = canny_buffers[0];
-            set_dark_borders(raw_buffer, border_mask);
+            set_dark_borders(raw_buffer, canny_buffers[0]);
+        }
+
+        if (edges_only)
+        {
+            to_grayscale(raw_buffer, canny_buffers[0]);
+            edge_detection(canny_buffers);
+            remap_to_rgb(canny_buffers[0]);
+            fill_buffer(raw_buffer, canny_buffers[0]);
         }
 
         if (pixelate)
