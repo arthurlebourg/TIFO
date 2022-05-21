@@ -86,6 +86,8 @@ int main(int argc, char *argv[])
     bool edges_only = false;
     bool pixelate = false;
 
+    Blur blur = Blur::NONE;
+
     auto square = square_kernel(2, 2);
 
     while (running)
@@ -128,6 +130,13 @@ int main(int argc, char *argv[])
                 {
                     edges_only = !dark_borders && !edges_only;
                 }
+                if (dark_borders || edges_only)
+                {
+                    if (SDL_SCANCODE_UP == event.key.keysym.scancode)
+                        ++blur;
+                    if (SDL_SCANCODE_DOWN == event.key.keysym.scancode)
+                        --blur;
+                }
                 if (SDL_SCANCODE_N == event.key.keysym.scancode)
                 {
                     pixelate = !pixelate;
@@ -166,7 +175,7 @@ int main(int argc, char *argv[])
         if (dark_borders)
         {
             to_grayscale(raw_buffer, canny_buffers[0]);
-            edge_detection(canny_buffers);
+            edge_detection(canny_buffers, blur);
 
             // Dilation to thicken edges, WIP
             canny_buffers[0].morph(square, true, canny_buffers[1]);
@@ -177,8 +186,8 @@ int main(int argc, char *argv[])
         if (edges_only)
         {
             to_grayscale(raw_buffer, canny_buffers[0]);
-            edge_detection(canny_buffers);
-            remap_to_rgb(canny_buffers[0]);
+            edge_detection(canny_buffers, blur);
+            // remap_to_rgb(canny_edge_buffers[0]);
             fill_buffer(raw_buffer, canny_buffers[0]);
         }
 

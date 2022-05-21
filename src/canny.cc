@@ -166,15 +166,24 @@ void weak_edges_removal(Matrix<float> &input, Matrix<float> &output)
                       });
 }
 
-void edge_detection(std::vector<Matrix<float>> &buffers)
+void edge_detection(std::vector<Matrix<float>> &buffers, Blur blur)
 {
-    edge_detection(buffers, true);
-}
-
-void edge_detection(std::vector<Matrix<float>> &buffers, bool blur)
-{
-    if (blur)
+    switch (blur)
+    {
+    case Blur::NONE:
+        break;
+    case Blur::GAUSS:
         gaussian_blur(buffers[0], buffers[1]);
+        gaussian_blur(buffers[1], buffers[0]);
+        buffers[1].get_data().swap(buffers[0].get_data());
+        break;
+    case Blur::MEDIAN:
+        median_filter(buffers[0], buffers[1], 5);
+        buffers[1].get_data().swap(buffers[0].get_data());
+        break;
+    default:
+        break;
+    }
 
     intensity_gradients(buffers[0], buffers[1], buffers[2]);
 
