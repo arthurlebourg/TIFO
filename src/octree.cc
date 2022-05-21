@@ -148,8 +148,8 @@ std::vector<Color> Quantizer::make_palette(size_t color_amount)
     size_t leaf_count = get_leaf_nodes().size();
     for (size_t level = MAX_DEPTH - 1; level < MAX_DEPTH; level--)
     {
-        std::cout << "level: " << level << " size: " << levels_[level].size()
-                  << std::endl;
+        // std::cout << "level: " << level << " size: " << levels_[level].size()
+        //           << std::endl;
         if (levels_[level].size() > 0)
         {
             for (auto i : levels_[level])

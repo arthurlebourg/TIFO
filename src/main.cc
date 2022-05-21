@@ -73,14 +73,22 @@ int main(int argc, char *argv[])
 
     Quantizer q;
     std::vector<Color> palette;
-    int palette_number = 256;
+    int palette_number = 40;
 
     int count;
-    bool init = true;
+    bool generate_palette = true;
+
     while (running)
     {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(renderer);
+
+        // Read a frame from the input pipe into the buffer
+        count = fread(raw_buffer, 1, screen_width * screen_height * 4, pipein);
+
+        // If we didn't get a frame of video, we're probably at the end
+        if (count != screen_width * screen_height * 4)
+            break;
 
         while (SDL_PollEvent(&event))
         {
@@ -103,55 +111,25 @@ int main(int argc, char *argv[])
             if (SDL_KEYDOWN == event.type
                 && SDL_SCANCODE_P == event.key.keysym.scancode)
             {
-                q = Quantizer();
-                palette.clear();
-                std::cout << "generating new color palette" << std::endl;
-                std::vector<Color> colors = unique_colors(raw_buffer);
-                std::cout << "colors: " << colors.size() << " | " << std::endl;
-
-                for (auto i : colors)
-                {
-                    q.add_color(i);
-                }
-
-                palette = q.make_palette(palette_number);
-                std::cout << "color palette: " << palette.size() << " | "
-                          << std::endl;
-                for (auto i : palette)
-                {
-                    std::cout << i << std::endl;
-                }
+                generate_palette = true;
             }
         }
 
-        // Not SDL
-
-        // Read a frame from the input pipe into the buffer
-        count = fread(raw_buffer, 1, screen_width * screen_height * 4, pipein);
-
-        // If we didn't get a frame of video, we're probably at the end
-        if (count != screen_width * screen_height * 4)
-            break;
-
-        if (init)
+        if (generate_palette)
         {
-            init = false;
-            std::cout << "generating new color palette" << std::endl;
-            std::vector<Color> colors = unique_colors(raw_buffer);
-            std::cout << "colors: " << colors.size() << " | " << std::endl;
+            generate_palette = false;
+            q = Quantizer();
 
-            for (auto i : colors)
+            std::cout << "generating new color palette" << std::endl;
+
+            for (size_t i = 0; i < screen_height * screen_width; i++)
             {
-                q.add_color(i);
+                auto color = get_pixel(raw_buffer, i * 4);
+                q.add_color(color);
             }
 
             palette = q.make_palette(palette_number);
-            std::cout << "color palette: " << palette.size() << " | "
-                      << std::endl;
-            // for (auto i : palette)
-            // {
-            //     std::cout << i << std::endl;
-            // }
+            std::cout << "color palette: " << palette.size() << std::endl;
         }
 
         // preprocess
@@ -161,11 +139,12 @@ int main(int argc, char *argv[])
 
         edge_detection(canny_buffers);
 
-        auto &output = canny_buffers[0];
+        auto &border_mask = canny_buffers[0];
 
         // Apply color quant
-        apply_palette(raw_buffer, q, palette);
-        set_dark_borders(raw_buffer, output);
+        // apply_palette(raw_buffer, q, palette);
+        apply_palette_debug(raw_buffer, q, palette, screen_width / 2);
+        set_dark_borders(raw_buffer, border_mask);
 
         // fill_buffer(pixels, output);
 

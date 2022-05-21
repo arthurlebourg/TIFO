@@ -61,6 +61,5 @@ void set_dark_borders(unsigned char *raw_buffer, Matrix<T> &border_mask);
 
 // FIXME
 void fill_buffer_pixelate(unsigned char *raw_buffer, size_t pixel_size);
-std::vector<Color> unique_colors(unsigned char *raw_buffer);
 
 #include "filters.hxx"
