@@ -195,3 +195,16 @@ inline Color operator*(const Color &c, double t)
     return Color(red > 255 ? 255 : red, green > 255 ? 255 : green,
                  blue > 255 ? 255 : blue, c.a());
 }
+
+inline Color operator/(const Color &c, double t)
+{
+    if (t <= 0)
+        return Color(0, 0, 0, 0);
+
+    int red = c.red() / t;
+    int green = c.green() / t;
+    int blue = c.blue() / t;
+    // prevents signed overflow
+    return Color(red > 255 ? 255 : red, green > 255 ? 255 : green,
+                 blue > 255 ? 255 : blue, c.a());
+}
