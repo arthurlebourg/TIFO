@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
     bool edges_only = false;
     bool pixelate = false;
 
-    auto square = square_kernel(3, 3);
+    auto square = square_kernel(2, 2);
 
     while (running)
     {

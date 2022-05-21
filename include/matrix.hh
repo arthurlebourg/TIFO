@@ -62,7 +62,7 @@ public:
 
     bool is_in_bound(size_t x, size_t y);
 
-    bool isonboundary(size_t x, size_t y, size_t sz);
+    bool is_on_boundary(size_t x, size_t y, size_t sx, size_t sy);
 
 private:
     size_t mRows;

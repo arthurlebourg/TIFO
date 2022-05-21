@@ -91,7 +91,11 @@ void Matrix<T>::convolve(Matrix<T> &kernel, Matrix<T> &output)
 template <typename T>
 void Matrix<T>::morph(Matrix<T> &kernel, bool is_dilation, Matrix<T> &output)
 {
-    size_t sz = (kernel.get_rows() - 1) / 2;
+    size_t krows = kernel.get_rows();
+    size_t kcols = kernel.get_cols();
+
+    size_t sx = krows / 2 + krows % 2;
+    size_t sy = kcols / 2 + kcols % 2;
 
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, mRows),
@@ -101,16 +105,16 @@ void Matrix<T>::morph(Matrix<T> &kernel, bool is_dilation, Matrix<T> &output)
                 for (size_t j = 0; j < mCols; j++)
                 {
                     T acc{};
-                    if (!isonboundary(i, j, sz))
+                    if (!is_on_boundary(j, i, sx, sy))
                     {
-                        for (size_t ii = 0; ii < kernel.get_rows(); ii++)
+                        for (size_t ii = 0; ii < krows; ii++)
                         {
-                            for (size_t jj = 0; jj < kernel.get_cols(); jj++)
+                            for (size_t jj = 0; jj < kcols; jj++)
                             {
                                 if (kernel.get_value(jj, ii) < 0.5)
                                     continue;
 
-                                auto val = get_value(j + jj - sz, i + ii - sz);
+                                auto val = get_value(j + jj - sx, i + ii - sy);
 
                                 if (is_dilation && val > acc)
                                     acc = val;
@@ -284,7 +288,7 @@ bool Matrix<T>::is_in_bound(size_t x, size_t y)
 }
 
 template <typename T>
-bool Matrix<T>::isonboundary(size_t x, size_t y, size_t sz)
+bool Matrix<T>::is_on_boundary(size_t x, size_t y, size_t sx, size_t sy)
 {
-    return (!(x < (mRows - sz) && x >= sz) || !(y < (mCols - sz) && y >= sz));
+    return (!(x >= sx && x < (mCols - sx)) || !(y >= sy && y < (mRows - sy)));
 }
