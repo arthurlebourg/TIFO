@@ -76,7 +76,10 @@ int main(int argc, char *argv[])
 
     int count;
     bool color_quantization = false;
+    bool palette_init = false;
+    bool generate_palette = false;
     bool dark_borders = false;
+    bool pixelate = false;
 
     while (running)
     {
@@ -99,32 +102,44 @@ int main(int argc, char *argv[])
                 running = false;
                 break;
             }
-            if (SDL_KEYDOWN == event.type
-                && SDL_SCANCODE_C == event.key.keysym.scancode)
+            if (SDL_KEYDOWN == event.type)
             {
-                color_quantization = !color_quantization;
-                if (color_quantization)
+                if (SDL_SCANCODE_C == event.key.keysym.scancode)
                 {
-                    q = Quantizer();
-
-                    std::cout << "generating new color palette" << std::endl;
-
-                    for (size_t i = 0; i < screen_height * screen_width; i++)
-                    {
-                        auto color = get_pixel(raw_buffer, i * 4);
-                        q.add_color(color);
-                    }
-
-                    palette = q.make_palette(palette_number);
-                    std::cout << "color palette: " << palette.size()
-                              << std::endl;
+                    color_quantization = palette_init && !color_quantization;
+                }
+                if (SDL_SCANCODE_P == event.key.keysym.scancode)
+                {
+                    generate_palette = !generate_palette;
+                }
+                if (SDL_SCANCODE_B == event.key.keysym.scancode)
+                {
+                    dark_borders = !dark_borders;
+                }
+                if (SDL_SCANCODE_N == event.key.keysym.scancode)
+                {
+                    pixelate = !pixelate;
                 }
             }
-            if (SDL_KEYDOWN == event.type
-                && SDL_SCANCODE_B == event.key.keysym.scancode)
+        }
+
+        if (generate_palette)
+        {
+            q = Quantizer();
+
+            std::cout << "generating new color palette" << std::endl;
+
+            for (size_t i = 0; i < screen_height * screen_width; i++)
             {
-                dark_borders = !dark_borders;
+                auto color = get_pixel(raw_buffer, i * 4);
+                q.add_color(color);
             }
+
+            palette = q.make_palette(palette_number);
+            std::cout << "color palette: " << palette.size() << std::endl;
+
+            palette_init = true;
+            generate_palette = false;
         }
 
         // Preprocess
@@ -132,15 +147,21 @@ int main(int argc, char *argv[])
         if (color_quantization)
         {
             apply_palette(raw_buffer, q, palette);
-            // apply_palette_debug(raw_buffer, q, palette, screen_width / 2);
+            // apply_palette_debug(raw_buffer, q, palette, screen_width /
+            // 2);
         }
 
         if (dark_borders)
         {
             to_grayscale(raw_buffer, canny_buffers[0]);
-            edge_detection(canny_buffers, false);
+            edge_detection(canny_buffers);
             auto &border_mask = canny_buffers[0];
             set_dark_borders(raw_buffer, border_mask);
+        }
+
+        if (pixelate)
+        {
+            pixelate_buffer(raw_buffer, 10);
         }
 
         // SDL again

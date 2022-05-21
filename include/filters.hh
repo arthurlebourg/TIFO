@@ -59,7 +59,9 @@ void apply_palette_debug(unsigned char *raw_buffer, Quantizer &q,
 template <typename T>
 void set_dark_borders(unsigned char *raw_buffer, Matrix<T> &border_mask);
 
-// FIXME
-void fill_buffer_pixelate(unsigned char *raw_buffer, size_t pixel_size);
+/*
+ * Simple pixelation filter
+ */
+void pixelate_buffer(unsigned char *raw_buffer, size_t pixel_size);
 
 #include "filters.hxx"
