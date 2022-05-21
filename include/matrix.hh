@@ -5,8 +5,6 @@
 #include <numeric>
 #include <vector>
 
-#include "utils.hh"
-
 template <typename T>
 class Matrix
 {

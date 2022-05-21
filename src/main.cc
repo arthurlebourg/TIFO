@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
                   << std::endl;
     }*/
 
-    SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
+    SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ABGR8888,
                                              SDL_TEXTUREACCESS_STREAMING,
                                              screen_width, screen_height);
 
@@ -43,9 +43,6 @@ int main(int argc, char *argv[])
 
     unsigned int frames = 0;
     Uint64 start = SDL_GetPerformanceCounter();
-
-    unsigned char *pixels = (unsigned char *)calloc(
-        screen_width * screen_height * 4, sizeof(unsigned char));
 
     FILE *pipein;
     if (argc == 1)
@@ -67,6 +64,9 @@ int main(int argc, char *argv[])
                        "-s 1280x720 -");
         pipein = popen(command.c_str(), "r");
     }
+
+    unsigned char *raw_buffer = (unsigned char *)calloc(
+        screen_width * screen_height * 4, sizeof(unsigned char));
 
     std::vector<Matrix<float>> canny_buffers(
         3, Matrix<float>(screen_height, screen_width, 0));
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
                 q = Quantizer();
                 palette.clear();
                 std::cout << "generating new color palette" << std::endl;
-                std::vector<Color> colors = unique_colors(pixels);
+                std::vector<Color> colors = unique_colors(raw_buffer);
                 std::cout << "colors: " << colors.size() << " | " << std::endl;
 
                 for (auto i : colors)
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
         // Not SDL
 
         // Read a frame from the input pipe into the buffer
-        count = fread(pixels, 1, screen_width * screen_height * 4, pipein);
+        count = fread(raw_buffer, 1, screen_width * screen_height * 4, pipein);
 
         // If we didn't get a frame of video, we're probably at the end
         if (count != screen_width * screen_height * 4)
@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
         {
             init = false;
             std::cout << "generating new color palette" << std::endl;
-            std::vector<Color> colors = unique_colors(pixels);
+            std::vector<Color> colors = unique_colors(raw_buffer);
             std::cout << "colors: " << colors.size() << " | " << std::endl;
 
             for (auto i : colors)
@@ -157,17 +157,15 @@ int main(int argc, char *argv[])
         // preprocess
 
         // Grayscale
-        canny_buffers[0].set_values(to_grayscale(pixels));
+        to_grayscale(raw_buffer, canny_buffers[0]);
 
         edge_detection(canny_buffers);
 
         auto &output = canny_buffers[0];
 
-        remap_to_rgb(output);
-
-        fill_buffer_palette(q, palette, pixels);
-        // fill_buffer(pixels);
-        fill_buffer_dark_borders(pixels, output);
+        // Apply color quant
+        apply_palette(raw_buffer, q, palette);
+        set_dark_borders(raw_buffer, output);
 
         // fill_buffer(pixels, output);
 
@@ -179,12 +177,13 @@ int main(int argc, char *argv[])
             int pitch = 0;
             SDL_LockTexture(texture, NULL,
                             reinterpret_cast<void **>(&lockedPixels), &pitch);
-            std::memcpy(lockedPixels, pixels, screen_width * screen_height * 3);
+            std::memcpy(lockedPixels, raw_buffer,
+                        screen_width * screen_height * 3);
             SDL_UnlockTexture(texture);
         }
         else
         {
-            SDL_UpdateTexture(texture, NULL, pixels, screen_width * 4);
+            SDL_UpdateTexture(texture, NULL, raw_buffer, screen_width * 4);
         }
 
         SDL_RenderCopy(renderer, texture, NULL, NULL);
@@ -210,7 +209,7 @@ int main(int argc, char *argv[])
     // Flush and close input and output pipes
     fflush(pipein);
     pclose(pipein);
-    free(pixels);
+    free(raw_buffer);
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <iostream>
 #include <tbb/parallel_for.h>
 
 #include "matrix.hh"

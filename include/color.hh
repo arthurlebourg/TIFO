@@ -67,9 +67,6 @@ inline Color operator+(const Color &c, unsigned int t)
     unsigned int red = t + c.red();
     unsigned int green = t + c.green();
     unsigned int blue = t + c.blue();
-    // prevents signed overflow
-    // return Color(red > 255 ? 255 : red, green > 255 ? 255 : green,
-    //             blue > 255 ? 255 : blue, c.a());
     return Color(red, green, blue, c.a());
 }
 
@@ -78,9 +75,6 @@ inline Color operator+(const Color &lhs, const Color &rhs)
     unsigned int red = lhs.red() + rhs.red();
     unsigned int green = lhs.green() + rhs.green();
     unsigned int blue = lhs.blue() + rhs.blue();
-    // prevents signed overflow
-    // return Color(red > 255 ? 255 : red, green > 255 ? 255 : green,
-    // blue > 255 ? 255 : blue, lhs.a());
     return Color(red, green, blue, lhs.a());
 }
 

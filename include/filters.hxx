@@ -3,39 +3,16 @@
 #include "matrix.hh"
 
 template <typename T>
-void fill_buffer(unsigned char *pixels, Matrix<T> &mat)
-{
-    tbb::parallel_for(tbb::blocked_range<size_t>(0, screen_height),
-                      [&](tbb::blocked_range<size_t> r) {
-                          for (size_t i = r.begin(); i < r.end(); i++)
-                          {
-                              for (size_t j = 0; j < screen_width; j++)
-                              {
-                                  size_t offset = get_offset(j, i);
-                                  unsigned char value =
-                                      (unsigned char)mat.get_value(j, i);
-                                  Color c(value, value, value, 255);
-                                  set_pixel(pixels, offset, c);
-                              }
-                          }
-                      });
-}
-
-template <typename T>
-void fill_buffer_dark_borders(unsigned char *pixels, Matrix<T> &mat)
+void to_grayscale(unsigned char *raw_buffer, Matrix<T> &output)
 {
     tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, screen_height),
+        tbb::blocked_range<size_t>(0, screen_height * screen_width),
         [&](tbb::blocked_range<size_t> r) {
             for (size_t i = r.begin(); i < r.end(); i++)
             {
-                for (size_t j = 0; j < screen_width; j++)
-                {
-                    size_t offset = get_offset(j, i);
-                    unsigned char value = (unsigned char)mat.get_value(j, i);
-                    if (value > 0)
-                        set_pixel(pixels, offset, Color(0, 0, 0, 255));
-                }
+                Color color = get_pixel(raw_buffer, i * 4);
+                output.get_data()[i] = color.red() * 0.299
+                    + color.green() * 0.587 + color.blue() * 0.114;
             }
         });
 }
@@ -53,6 +30,38 @@ void remap_to_rgb(Matrix<T> &mat)
             {
                 mat.get_data()[i] =
                     (int)((mat.get_data()[i] - minmax.first) * 255. / diff);
+            }
+        });
+}
+
+template <typename T>
+void fill_buffer(unsigned char *raw_buffer, Matrix<T> &mat)
+{
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, screen_height * screen_width),
+        [&](tbb::blocked_range<size_t> r) {
+            for (size_t i = r.begin(); i < r.end(); i++)
+            {
+                unsigned char value = (unsigned char)mat.get_data()[i];
+                Color c(value, value, value, 255);
+                set_pixel(raw_buffer, i * 4, c);
+            }
+        });
+}
+
+template <typename T>
+void set_dark_borders(unsigned char *raw_buffer, Matrix<T> &border_mask)
+{
+    auto border_color = Color(0, 0, 0, 255);
+
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, screen_height * screen_width),
+        [&](tbb::blocked_range<size_t> r) {
+            for (size_t i = r.begin(); i < r.end(); i++)
+            {
+                unsigned char value = (unsigned char)border_mask.get_data()[i];
+                if (value > 0)
+                    set_pixel(raw_buffer, i * 4, border_color);
             }
         });
 }

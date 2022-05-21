@@ -1,5 +1,7 @@
 #include "kernels.hh"
 
+#include "utils.hh"
+
 Matrix<float> mgridy(float begin, float end)
 {
     Matrix<float> mat(end - begin, end - begin);

@@ -8,33 +8,59 @@
 const size_t screen_width = 1280;
 const size_t screen_height = 720;
 
-std::vector<float> to_grayscale(unsigned char *pixels);
-
-Color get_pixel(unsigned char *pixels, size_t offset);
-
-void set_pixel(unsigned char *pixels, size_t offset, Color col);
-
+/*
+ * Get raw buffer offset
+ */
 size_t get_offset(size_t x, size_t y);
 
-void fill_buffer_pixelate(unsigned char *pixels, size_t pixel_size);
+/*
+ * Read raw pixel as RGBA
+ */
+Color get_pixel(unsigned char *raw_buffer, size_t offset);
 
-void fill_buffer(unsigned char *pixels);
+/*
+ * Set raw pixel as RGBA
+ */
+void set_pixel(unsigned char *raw_buffer, size_t offset, Color &col);
 
-void fill_buffer_palette(Quantizer q, std::vector<Color> palette,
-                         unsigned char *pixels);
-
-void fill_buffer_palette_debug(size_t miny, size_t maxy, Quantizer q,
-                               std::vector<Color> palette,
-                               unsigned char *pixels);
+/*
+ * Get grayscale matrix from RGBA input buffer
+ */
 template <typename T>
-void fill_buffer(unsigned char *pixels, Matrix<T> &mat);
+void to_grayscale(unsigned char *raw_buffer, Matrix<T> &output);
 
-template <typename T>
-void fill_buffer_dark_borders(unsigned char *pixels, Matrix<T> &mat);
-
-std::vector<Color> unique_colors(unsigned char *pixels);
-
+/*
+ * Remap matrix values to RGB range (0-255)
+ */
 template <typename T>
 void remap_to_rgb(Matrix<T> &mat);
+
+/*
+ * Fill buffer using matrix values (assumed to be in RGB range)
+ */
+template <typename T>
+void fill_buffer(unsigned char *raw_buffer, Matrix<T> &mat);
+
+/*
+ * Apply new color palette
+ */
+void apply_palette(unsigned char *raw_buffer, Quantizer &q,
+                   std::vector<Color> &palette);
+
+/*
+ * Apply new color palette only in [0; x_limit] range
+ */
+void apply_palette_debug(unsigned char *raw_buffer, Quantizer &q,
+                         std::vector<Color> &palette, size_t x_limit);
+
+/*
+ * Set detected borders in black
+ */
+template <typename T>
+void set_dark_borders(unsigned char *raw_buffer, Matrix<T> &border_mask);
+
+// FIXME
+void fill_buffer_pixelate(unsigned char *raw_buffer, size_t pixel_size);
+std::vector<Color> unique_colors(unsigned char *raw_buffer);
 
 #include "filters.hxx"
