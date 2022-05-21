@@ -111,10 +111,10 @@ void Matrix<T>::morph(Matrix<T> &kernel, bool is_dilation, Matrix<T> &output)
                         {
                             for (size_t jj = 0; jj < kernel.get_cols(); jj++)
                             {
-                                if (kernel.at(jj, ii) == 1)
+                                if (kernel.safe_at(jj, ii) == 1)
                                 {
                                     list.push_back(
-                                        at(j + jj - sz, i + ii - sz));
+                                        safe_at(j + jj - sz, i + ii - sz));
                                 }
                             }
                         }
@@ -158,7 +158,7 @@ const std::vector<T> &Matrix<T>::get_data() const
 }
 
 template <typename T>
-T Matrix<T>::at(size_t x, size_t y)
+T Matrix<T>::get_value(size_t x, size_t y)
 {
     return mData[y * mCols + x];
 }
@@ -167,6 +167,12 @@ template <typename T>
 void Matrix<T>::set_value(size_t x, size_t y, T val)
 {
     mData[y * mCols + x] = val;
+}
+
+template <typename T>
+T Matrix<T>::safe_at(size_t x, size_t y)
+{
+    return is_in_bound(x, y) ? mData[y * mCols + x] : T{};
 }
 
 template <typename T>
@@ -282,7 +288,7 @@ Matrix<T> Matrix<T>::operator-(const Matrix<T> &rhs)
 template <typename T>
 bool Matrix<T>::is_in_bound(size_t x, size_t y)
 {
-    return x < mRows && y < mCols;
+    return x < mCols && y < mRows;
 }
 
 template <typename T>

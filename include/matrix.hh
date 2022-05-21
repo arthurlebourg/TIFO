@@ -47,9 +47,12 @@ public:
     std::vector<T> &get_data();
     const std::vector<T> &get_data() const;
 
-    T at(size_t x, size_t y);
-
+    // No bounds check
+    T get_value(size_t x, size_t y);
     void set_value(size_t x, size_t y, T val);
+
+    // With bounds check
+    T safe_at(size_t x, size_t y);
 
     Matrix<T> operator+=(const Matrix<T> &rhs);
     Matrix<T> operator*=(const Matrix<T> &rhs);

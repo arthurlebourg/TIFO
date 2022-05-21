@@ -68,13 +68,8 @@ int main(int argc, char *argv[])
         pipein = popen(command.c_str(), "r");
     }
 
-    std::vector<Matrix<float>> buffers(
-        10, Matrix<float>(screen_height, screen_width, 0));
-
-    auto gauss = gauss_5();
-    // auto big_ellipse = ellipse_kernel(3,3);
-    // auto small_ellipse = ellipse_kernel(2,2);
-    auto square = square_kernel(3, 3);
+    std::vector<Matrix<float>> canny_buffers(
+        3, Matrix<float>(screen_height, screen_width, 0));
 
     Quantizer q;
     std::vector<Color> palette;
@@ -153,44 +148,28 @@ int main(int argc, char *argv[])
             palette = q.make_palette(palette_number);
             std::cout << "color palette: " << palette.size() << " | "
                       << std::endl;
-            for (auto i : palette)
-            {
-                std::cout << i << std::endl;
-            }
+            // for (auto i : palette)
+            // {
+            //     std::cout << i << std::endl;
+            // }
         }
 
         // preprocess
 
         // Grayscale
-        buffers[0].set_values(to_grayscale(pixels));
+        canny_buffers[0].set_values(to_grayscale(pixels));
 
-        // // Filter out noise (slow)
-        gaussian_blur(buffers[0], buffers[1], buffers[2]);
+        edge_detection(canny_buffers);
 
-        // Intensity gradients
-        intensity_gradients(buffers[0], buffers[3], buffers[4]);
+        auto &output = canny_buffers[0];
 
-        non_maximum_suppression(buffers[3], buffers[4], buffers[5]);
-
-        weak_strong_edges_thresholding(buffers[5], buffers[6]);
-
-        weak_edges_removal(buffers[6], buffers[7]);
-
-        buffers[7].morph(square, true, buffers[8]);
-
-        auto &output = buffers[8];
-
-        // Remap to RGB values
-        auto minmax = output.get_minmax();
-
-        auto rescale = [minmax](float a, size_t i) {
-            i = i;
-            return ((a - minmax.first) * 255 / (minmax.second - minmax.first));
-        };
-        output.apply(rescale);
+        remap_to_rgb(output);
 
         fill_buffer_palette(q, palette, pixels);
-        fill_buffer_dark_borders(pixels, &output);
+        // fill_buffer(pixels);
+        fill_buffer_dark_borders(pixels, output);
+
+        // fill_buffer(pixels, output);
 
         // SDL again
 

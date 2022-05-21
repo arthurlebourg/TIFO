@@ -4,11 +4,13 @@
 #include <math.h>
 #include <tbb/parallel_for.h>
 
+#include "gauss.hh"
+
 const float SOBEL_X[] = { -1, 0, 1, -2, 0, 2, -1, 0, 1 };
 const float SOBEL_Y[] = { -1, -2, -1, 0, 0, 0, 1, 2, 1 };
 
-void intensity_gradients(Matrix<float> &input, Matrix<float> &gradient,
-                         Matrix<float> &angle)
+void intensity_gradients(Matrix<float> &input, Matrix<float> &gradient_out,
+                         Matrix<float> &angle_out)
 {
     auto m_rows = input.get_rows();
     auto m_cols = input.get_cols();
@@ -31,15 +33,17 @@ void intensity_gradients(Matrix<float> &input, Matrix<float> &gradient,
 
                             if (ii < m_rows && jj < m_cols)
                             {
-                                g_x += input.at(jj, ii) * SOBEL_X[m * 3 + n];
-                                g_y += input.at(jj, ii) * SOBEL_Y[m * 3 + n];
+                                g_x +=
+                                    input.safe_at(jj, ii) * SOBEL_X[m * 3 + n];
+                                g_y +=
+                                    input.safe_at(jj, ii) * SOBEL_Y[m * 3 + n];
                             }
                         }
                     }
 
                     // Approximation: sqrt(Gx² + Gy²) => |Gx| + |Gy|
-                    gradient.set_value(j, i, std::abs(g_x) + std::abs(g_y));
-                    angle.set_value(j, i, std::atan2(g_y, g_x));
+                    gradient_out.set_value(j, i, std::abs(g_x) + std::abs(g_y));
+                    angle_out.set_value(j, i, std::atan2(g_y, g_x));
                 }
             }
         });
@@ -55,7 +59,7 @@ void non_maximum_suppression(Matrix<float> &gradient_in,
                               for (size_t j = 0; j < gradient_in.get_cols();
                                    j++)
                               {
-                                  float angle = angle_in.at(j, i);
+                                  float angle = angle_in.safe_at(j, i);
 
                                   if (angle < 0)
                                       angle += 180;
@@ -66,29 +70,29 @@ void non_maximum_suppression(Matrix<float> &gradient_in,
                                   if ((angle >= 0 && angle < 22.5)
                                       || (angle >= 157.5 && angle <= 180))
                                   {
-                                      q = gradient_in.at(j, i + 1);
-                                      r = gradient_in.at(j, i - 1);
+                                      q = gradient_in.safe_at(j, i + 1);
+                                      r = gradient_in.safe_at(j, i - 1);
                                   }
                                   // 45°
                                   else if (angle >= 22.5 && angle < 67.5)
                                   {
-                                      q = gradient_in.at(j + 1, i - 1);
-                                      r = gradient_in.at(j - 1, i + 1);
+                                      q = gradient_in.safe_at(j + 1, i - 1);
+                                      r = gradient_in.safe_at(j - 1, i + 1);
                                   }
                                   // 90°
                                   else if (angle >= 67.5 && angle < 112.5)
                                   {
-                                      q = gradient_in.at(j + 1, i);
-                                      r = gradient_in.at(j - 1, i);
+                                      q = gradient_in.safe_at(j + 1, i);
+                                      r = gradient_in.safe_at(j - 1, i);
                                   }
                                   // 135°
                                   else if (angle >= 112.5 && angle < 157.5)
                                   {
-                                      q = gradient_in.at(j - 1, i - 1);
-                                      r = gradient_in.at(j + 1, i + 1);
+                                      q = gradient_in.safe_at(j - 1, i - 1);
+                                      r = gradient_in.safe_at(j + 1, i + 1);
                                   }
 
-                                  float value = gradient_in.at(j, i);
+                                  float value = gradient_in.get_value(j, i);
                                   if (value >= q && value >= r)
                                       output.set_value(j, i, value);
                                   else
@@ -112,7 +116,7 @@ void weak_strong_edges_thresholding(Matrix<float> &input, Matrix<float> &output)
                           {
                               for (size_t j = 0; j < input.get_cols(); j++)
                               {
-                                  float value = input.at(j, i);
+                                  float value = input.get_value(j, i);
 
                                   if (value >= high_threshold)
                                       output.set_value(j, i, STRONG);
@@ -132,30 +136,46 @@ const std::pair<int8_t, int8_t> NEIGHBOURS[] = {
 
 void weak_edges_removal(Matrix<float> &input, Matrix<float> &output)
 {
-    tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, input.get_rows()),
-        [&](tbb::blocked_range<size_t> r) {
-            for (size_t i = r.begin(); i < r.end(); i++)
-            {
-                for (size_t j = 0; j < input.get_cols(); j++)
-                {
-                    auto value = input.at(j, i);
-                    if (value == WEAK)
-                    {
-                        value = NONE;
-                        // If weak edge connected to strong edge
-                        for (auto p : NEIGHBOURS)
-                        {
-                            if (input.is_in_bound(p.first, p.second)
-                                && input.at(p.first, p.second) == STRONG)
-                            {
-                                value = STRONG;
-                                break;
-                            }
-                        }
-                    }
-                    output.set_value(j, i, value);
-                }
-            }
-        });
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, input.get_rows()),
+                      [&](tbb::blocked_range<size_t> r) {
+                          for (size_t i = r.begin(); i < r.end(); i++)
+                          {
+                              for (size_t j = 0; j < input.get_cols(); j++)
+                              {
+                                  auto value = input.get_value(j, i);
+                                  if (value == WEAK)
+                                  {
+                                      value = NONE;
+                                      // If weak edge connected to strong edge
+                                      for (auto p : NEIGHBOURS)
+                                      {
+                                          size_t ii = i + p.first;
+                                          size_t jj = j + p.second;
+
+                                          if (input.is_in_bound(jj, ii)
+                                              && input.get_value(jj, ii)
+                                                  == STRONG)
+                                          {
+                                              value = STRONG;
+                                              break;
+                                          }
+                                      }
+                                  }
+                                  output.set_value(j, i, value);
+                              }
+                          }
+                      });
+}
+
+void edge_detection(std::vector<Matrix<float>> &buffers)
+{
+    gaussian_blur(buffers[0], buffers[1], buffers[2]);
+
+    intensity_gradients(buffers[2], buffers[0], buffers[1]);
+
+    non_maximum_suppression(buffers[0], buffers[1], buffers[2]);
+
+    weak_strong_edges_thresholding(buffers[2], buffers[1]);
+
+    weak_edges_removal(buffers[1], buffers[0]);
 }

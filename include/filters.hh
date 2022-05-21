@@ -2,7 +2,7 @@
 #include <set>
 
 #include "color.hh"
-#include "image.hh"
+#include "matrix.hh"
 #include "octree.hh"
 
 const size_t screen_width = 1280;
@@ -33,5 +33,8 @@ template <typename T>
 void fill_buffer_dark_borders(unsigned char *pixels, Matrix<T> &mat);
 
 std::vector<Color> unique_colors(unsigned char *pixels);
+
+template <typename T>
+void remap_to_rgb(Matrix<T> &mat);
 
 #include "filters.hxx"
