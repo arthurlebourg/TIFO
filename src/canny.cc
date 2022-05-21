@@ -4,7 +4,7 @@
 #include <math.h>
 #include <tbb/parallel_for.h>
 
-#include "gauss.hh"
+#include "filters.hh"
 
 const float SOBEL_X[] = { -1, 0, 1, -2, 0, 2, -1, 0, 1 };
 const float SOBEL_Y[] = { -1, -2, -1, 0, 0, 0, 1, 2, 1 };

@@ -1,4 +1,4 @@
-#include "gauss.hh"
+#include "filters.hh"
 
 #include <iostream>
 
