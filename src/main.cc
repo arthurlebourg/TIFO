@@ -73,10 +73,11 @@ int main(int argc, char *argv[])
 
     Quantizer q;
     std::vector<Color> palette;
-    int palette_number = 40;
+    int palette_number = 100;
 
     int count;
-    bool generate_palette = true;
+    bool generate_palette = false;
+    bool dark_borders = false;
 
     while (running)
     {
@@ -111,25 +112,29 @@ int main(int argc, char *argv[])
             if (SDL_KEYDOWN == event.type
                 && SDL_SCANCODE_P == event.key.keysym.scancode)
             {
-                generate_palette = true;
+                generate_palette = !generate_palette;
+                if (generate_palette)
+                {
+                    q = Quantizer();
+
+                    std::cout << "generating new color palette" << std::endl;
+
+                    for (size_t i = 0; i < screen_height * screen_width; i++)
+                    {
+                        auto color = get_pixel(raw_buffer, i * 4);
+                        q.add_color(color);
+                    }
+
+                    palette = q.make_palette(palette_number);
+                    std::cout << "color palette: " << palette.size()
+                              << std::endl;
+                }
             }
-        }
-
-        if (generate_palette)
-        {
-            generate_palette = false;
-            q = Quantizer();
-
-            std::cout << "generating new color palette" << std::endl;
-
-            for (size_t i = 0; i < screen_height * screen_width; i++)
+            if (SDL_KEYDOWN == event.type
+                && SDL_SCANCODE_B == event.key.keysym.scancode)
             {
-                auto color = get_pixel(raw_buffer, i * 4);
-                q.add_color(color);
+                dark_borders = !dark_borders;
             }
-
-            palette = q.make_palette(palette_number);
-            std::cout << "color palette: " << palette.size() << std::endl;
         }
 
         // preprocess
@@ -142,9 +147,12 @@ int main(int argc, char *argv[])
         auto &border_mask = canny_buffers[0];
 
         // Apply color quant
-        // apply_palette(raw_buffer, q, palette);
-        apply_palette_debug(raw_buffer, q, palette, screen_width / 2);
-        set_dark_borders(raw_buffer, border_mask);
+        if (generate_palette)
+            apply_palette(raw_buffer, q, palette);
+        // if (generate_palette)
+        //     apply_palette_debug(raw_buffer, q, palette, screen_width / 2);
+        if (dark_borders)
+            set_dark_borders(raw_buffer, border_mask);
 
         // fill_buffer(pixels, output);
 
