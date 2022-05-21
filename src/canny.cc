@@ -104,8 +104,8 @@ void non_maximum_suppression(Matrix<float> &gradient_in,
 
 void weak_strong_edges_thresholding(Matrix<float> &input, Matrix<float> &output)
 {
-    const float low_threshold_ratio = 0.05;
-    const float hight_threshold_ratio = 0.09;
+    const float low_threshold_ratio = 0.03;
+    const float hight_threshold_ratio = 0.05;
 
     float high_threshold = input.get_max() * hight_threshold_ratio;
     float low_threshold = high_threshold * low_threshold_ratio;

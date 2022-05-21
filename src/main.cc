@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
         pipein = popen("ffmpeg -loglevel error -stream_loop -1 -i /dev/video0  "
                        "-f image2pipe "
                        "-vcodec rawvideo "
-                       "-pix_fmt rgba -r 60 -s 1280x720 -",
+                       "-pix_fmt rgba -r 30 -s 1280x720 -",
                        "r");
     }
     else
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 
     Quantizer q;
     std::vector<Color> palette;
-    int palette_number = 5;
+    int palette_number = 256;
 
     int count;
     bool generate_palette = false;
