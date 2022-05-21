@@ -75,8 +75,8 @@ void non_maximum_suppression(Matrix<float> &gradient_in,
                     // 45°
                     else if (angle >= 22.5 && angle < 67.5)
                     {
-                        q = gradient_in.safe_at(j - 1, i + 1);
-                        r = gradient_in.safe_at(j + 1, i - 1);
+                        q = gradient_in.safe_at(j - 1, i - 1);
+                        r = gradient_in.safe_at(j + 1, i + 1);
                     }
                     // 90°
                     else if (angle >= 67.5 && angle < 112.5)
@@ -87,8 +87,8 @@ void non_maximum_suppression(Matrix<float> &gradient_in,
                     // 135°
                     else if (angle >= 112.5 && angle < 157.5)
                     {
-                        q = gradient_in.safe_at(j - 1, i - 1);
-                        r = gradient_in.safe_at(j + 1, i + 1);
+                        q = gradient_in.safe_at(j - 1, i + 1);
+                        r = gradient_in.safe_at(j + 1, i - 1);
                     }
 
                     float value = gradient_in.get_value(j, i);
