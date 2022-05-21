@@ -39,7 +39,6 @@ int main(int argc, char *argv[])
 
     SDL_Event event;
     bool running = true;
-    bool useLocktexture = false;
 
     unsigned int frames = 0;
     Uint64 start = SDL_GetPerformanceCounter();
@@ -73,10 +72,10 @@ int main(int argc, char *argv[])
 
     Quantizer q;
     std::vector<Color> palette;
-    int palette_number = 256;
+    int palette_number = 40;
 
     int count;
-    bool generate_palette = false;
+    bool color_quantization = false;
     bool dark_borders = false;
 
     while (running)
@@ -101,19 +100,10 @@ int main(int argc, char *argv[])
                 break;
             }
             if (SDL_KEYDOWN == event.type
-                && SDL_SCANCODE_L == event.key.keysym.scancode)
+                && SDL_SCANCODE_C == event.key.keysym.scancode)
             {
-                useLocktexture = !useLocktexture;
-                std::cout << "Using "
-                          << (useLocktexture ? "SDL_LockTexture() + memcpy()"
-                                             : "SDL_UpdateTexture()")
-                          << std::endl;
-            }
-            if (SDL_KEYDOWN == event.type
-                && SDL_SCANCODE_P == event.key.keysym.scancode)
-            {
-                generate_palette = !generate_palette;
-                if (generate_palette)
+                color_quantization = !color_quantization;
+                if (color_quantization)
                 {
                     q = Quantizer();
 
@@ -137,42 +127,24 @@ int main(int argc, char *argv[])
             }
         }
 
-        // preprocess
+        // Preprocess
 
-        // Grayscale
-        to_grayscale(raw_buffer, canny_buffers[0]);
-
-        edge_detection(canny_buffers);
-
-        auto &border_mask = canny_buffers[0];
-
-        // Apply color quant
-        if (generate_palette)
+        if (color_quantization)
+        {
             apply_palette(raw_buffer, q, palette);
-        // if (generate_palette)
-        //     apply_palette_debug(raw_buffer, q, palette, screen_width / 2);
-        if (dark_borders)
-            set_dark_borders(raw_buffer, border_mask);
+            // apply_palette_debug(raw_buffer, q, palette, screen_width / 2);
+        }
 
-        // fill_buffer(pixels, output);
+        if (dark_borders)
+        {
+            to_grayscale(raw_buffer, canny_buffers[0]);
+            edge_detection(canny_buffers, false);
+            auto &border_mask = canny_buffers[0];
+            set_dark_borders(raw_buffer, border_mask);
+        }
 
         // SDL again
-
-        if (useLocktexture)
-        {
-            unsigned char *lockedPixels = nullptr;
-            int pitch = 0;
-            SDL_LockTexture(texture, NULL,
-                            reinterpret_cast<void **>(&lockedPixels), &pitch);
-            std::memcpy(lockedPixels, raw_buffer,
-                        screen_width * screen_height * 3);
-            SDL_UnlockTexture(texture);
-        }
-        else
-        {
-            SDL_UpdateTexture(texture, NULL, raw_buffer, screen_width * 4);
-        }
-
+        SDL_UpdateTexture(texture, NULL, raw_buffer, screen_width * 4);
         SDL_RenderCopy(renderer, texture, NULL, NULL);
         SDL_RenderPresent(renderer);
 
