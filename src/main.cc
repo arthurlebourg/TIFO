@@ -8,8 +8,8 @@
 #include <thread>
 #include <vector>
 
+#include "buffer_utils.hh"
 #include "canny.hh"
-#include "filters.hh"
 #include "gauss.hh"
 #include "kernels.hh"
 #include "octree.hh"

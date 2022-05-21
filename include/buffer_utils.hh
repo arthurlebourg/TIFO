@@ -64,4 +64,4 @@ void set_dark_borders(unsigned char *raw_buffer, Matrix<T> &border_mask);
  */
 void pixelate_buffer(unsigned char *raw_buffer, size_t pixel_size);
 
-#include "filters.hxx"
+#include "buffer_utils.hxx"
