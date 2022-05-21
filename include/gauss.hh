@@ -2,5 +2,4 @@
 
 #include "matrix.hh"
 
-void gaussian_blur(Matrix<float> &input, Matrix<float> &tmp_buffer,
-                   Matrix<float> &output);
+void gaussian_blur(Matrix<float> &mat, Matrix<float> &tmp_buffer);

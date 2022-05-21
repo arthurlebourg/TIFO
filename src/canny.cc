@@ -28,8 +28,8 @@ void intensity_gradients(Matrix<float> &input, Matrix<float> &gradient_out,
                     {
                         for (size_t n = 0; n < 3; n++)
                         {
-                            size_t ii = i - m - 1;
-                            size_t jj = j - n - 1;
+                            size_t ii = i + (-1 + m);
+                            size_t jj = j + (-1 + n);
 
                             if (ii < m_rows && jj < m_cols)
                             {
@@ -169,13 +169,19 @@ void weak_edges_removal(Matrix<float> &input, Matrix<float> &output)
 
 void edge_detection(std::vector<Matrix<float>> &buffers)
 {
-    gaussian_blur(buffers[0], buffers[1], buffers[2]);
+    edge_detection(buffers, true);
+}
 
-    intensity_gradients(buffers[2], buffers[0], buffers[1]);
+void edge_detection(std::vector<Matrix<float>> &buffers, bool blur)
+{
+    if (blur)
+        gaussian_blur(buffers[0], buffers[1]);
 
-    non_maximum_suppression(buffers[0], buffers[1], buffers[2]);
+    intensity_gradients(buffers[0], buffers[1], buffers[2]);
 
-    weak_strong_edges_thresholding(buffers[2], buffers[1]);
+    non_maximum_suppression(buffers[1], buffers[2], buffers[0]);
+
+    weak_strong_edges_thresholding(buffers[0], buffers[1]);
 
     weak_edges_removal(buffers[1], buffers[0]);
 }

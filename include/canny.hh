@@ -9,4 +9,5 @@ enum Edge : uint8_t
     STRONG = 255,
 };
 
-void edge_detection(std::vector<Matrix<float>> &tmp_buffers);
+void edge_detection(std::vector<Matrix<float>> &buffers);
+void edge_detection(std::vector<Matrix<float>> &buffers, bool blur);
