@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
     auto gauss = gauss_5();
     // auto big_ellipse = ellipse_kernel(3,3);
     // auto small_ellipse = ellipse_kernel(2,2);
-    // auto square = square_kernel(3, 3);
+    auto square = square_kernel(3, 3);
 
     Quantizer q;
     std::vector<Color> palette;
@@ -176,9 +176,9 @@ int main(int argc, char *argv[])
 
         weak_edges_removal(buffers[6], buffers[7]);
 
-        // buffers[7].morph(square, true, buffers[8]);
+        buffers[7].morph(square, true, buffers[8]);
 
-        auto &output = buffers[7];
+        auto &output = buffers[8];
 
         // Remap to RGB values
         auto minmax = output.get_minmax();
