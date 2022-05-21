@@ -13,45 +13,140 @@ public:
         , a_(0)
     {}
 
-    Color(unsigned int red, unsigned int green, unsigned int blue,
-          unsigned int a)
+    Color(size_t red, size_t green, size_t blue, size_t a)
         : red_(red)
         , green_(green)
         , blue_(blue)
         , a_(a)
     {}
 
-    unsigned int red() const
+    size_t red() const
     {
         return red_;
     }
 
-    unsigned int green() const
+    size_t green() const
     {
         return green_;
     }
 
-    unsigned int blue() const
+    size_t blue() const
     {
         return blue_;
     }
 
-    unsigned int a() const
+    size_t a() const
     {
         return a_;
     }
 
     Color normalized(size_t pixel_count)
     {
-        return Color(red_ / pixel_count, green_ / pixel_count,
-                     blue_ / pixel_count, a_);
+        std::cout << "red: " << red_ << " green: " << green_
+                  << " blue: " << blue_ << " count: " << pixel_count
+                  << std::endl;
+        Color res(red_ / pixel_count, green_ / pixel_count, blue_ / pixel_count,
+                  a_);
+        std::cout << "red: " << res.red_ << " green: " << res.green_
+                  << " blue: " << res.blue_ << std::endl;
+        return res;
+    }
+
+    Color normalized_biased(size_t pixel_count)
+    {
+        Color res(red_ / pixel_count, green_ / pixel_count, blue_ / pixel_count,
+                  a_);
+        size_t max = 0;
+        size_t min = 0;
+        if (res.red_ > res.blue_)
+        {
+            if (res.red_ > res.green_)
+            {
+                max = res.red_;
+            }
+            else
+            {
+                max = res.green_;
+            }
+            if (res.blue_ > res.green_)
+            {
+                min = res.green_;
+            }
+            else
+            {
+                min = res.blue_;
+            }
+        }
+        else
+        {
+            if (res.blue_ > res.green_)
+            {
+                max = res.blue_;
+            }
+            else
+            {
+                max = res.green_;
+            }
+            if (res.red_ > res.green_)
+            {
+                min = res.green_;
+            }
+            else
+            {
+                min = res.red_;
+            }
+        }
+
+        if (res.red_ > res.blue_)
+        {
+            if (res.red_ > res.green_)
+            {
+                res.red_ =
+                    max - min + res.red_ > 255 ? 255 : max - min + res.red_;
+            }
+            else
+            {
+                res.green_ =
+                    max - min + res.green_ > 255 ? 255 : max - min + res.green_;
+            }
+            if (res.blue_ > res.green_)
+            {
+                res.green_ -= max - min > res.green_ ? res.green_ : max - min;
+            }
+            else
+            {
+                res.blue_ -= max - min > res.blue_ ? res.blue_ : max - min;
+            }
+        }
+        else
+        {
+            if (res.blue_ > res.green_)
+            {
+                res.blue_ =
+                    max - min + res.blue_ > 255 ? 255 : max - min + res.blue_;
+            }
+            else
+            {
+                res.green_ =
+                    max - min + res.green_ > 255 ? 255 : max - min + res.green_;
+            }
+            if (res.red_ > res.green_)
+            {
+                res.green_ -= max - min > res.green_ ? res.green_ : max - min;
+            }
+            else
+            {
+                res.red_ -= max - min > res.red_ ? res.red_ : max - min;
+            }
+        }
+        return res;
     }
 
 private:
-    unsigned int red_;
-    unsigned int green_;
-    unsigned int blue_;
-    unsigned int a_;
+    size_t red_;
+    size_t green_;
+    size_t blue_;
+    size_t a_;
 };
 
 inline std::ostream &operator<<(std::ostream &os, Color &col)
@@ -62,27 +157,27 @@ inline std::ostream &operator<<(std::ostream &os, Color &col)
               << std::dec << std::endl;
 }
 
-inline Color operator+(const Color &c, unsigned int t)
+inline Color operator+(const Color &c, size_t t)
 {
-    unsigned int red = t + c.red();
-    unsigned int green = t + c.green();
-    unsigned int blue = t + c.blue();
+    size_t red = t + c.red();
+    size_t green = t + c.green();
+    size_t blue = t + c.blue();
     return Color(red, green, blue, c.a());
 }
 
 inline Color operator+(const Color &lhs, const Color &rhs)
 {
-    unsigned int red = lhs.red() + rhs.red();
-    unsigned int green = lhs.green() + rhs.green();
-    unsigned int blue = lhs.blue() + rhs.blue();
+    size_t red = lhs.red() + rhs.red();
+    size_t green = lhs.green() + rhs.green();
+    size_t blue = lhs.blue() + rhs.blue();
     return Color(red, green, blue, lhs.a());
 }
 
 inline Color operator-(const Color &lhs, const Color &rhs)
 {
-    unsigned int red = lhs.red() - rhs.red();
-    unsigned int green = lhs.green() - rhs.green();
-    unsigned int blue = lhs.blue() - rhs.blue();
+    size_t red = lhs.red() - rhs.red();
+    size_t green = lhs.green() - rhs.green();
+    size_t blue = lhs.blue() - rhs.blue();
     // prevents signed overflow
     return Color(red > 255 ? 0 : red, green > 0 ? 255 : green,
                  blue > 255 ? 0 : blue, lhs.a());

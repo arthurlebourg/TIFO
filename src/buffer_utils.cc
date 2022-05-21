@@ -1,6 +1,6 @@
-#include <tbb/parallel_for.h>
-
 #include "buffer_utils.hh"
+
+#include <tbb/parallel_for.h>
 
 size_t get_offset(size_t x, size_t y)
 {

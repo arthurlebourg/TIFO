@@ -92,6 +92,13 @@ size_t Node::get_palette_index(Color c, size_t level)
                 continue;
             return i->get_palette_index(c, level + 1);
         }
+        /*size_t len = children_.size();
+        for (size_t i = len - 1; i < len; i--)
+        {
+            if (children_[i] == nullptr)
+                continue;
+            return children_[i]->get_palette_index(c, level +1);
+        }*/
         std::cout << "BIG ERROR" << std::endl;
         return palette_index_;
     }
@@ -111,14 +118,13 @@ size_t Node::remove_leaves()
         pixel_count_ += i->pixel_count_;
         result++;
     }
-    // children_ = std::vector<std::shared_ptr<Node>>(8, nullptr);
     children_.clear();
     return result - 1;
 }
 
 Color Node::get_color()
 {
-    return c_.normalized(pixel_count_);
+    return c_.normalized_biased(pixel_count_);
 }
 
 void Node::set_palette_index(size_t index)
@@ -148,8 +154,6 @@ std::vector<Color> Quantizer::make_palette(size_t color_amount)
     size_t leaf_count = get_leaf_nodes().size();
     for (size_t level = MAX_DEPTH - 1; level < MAX_DEPTH; level--)
     {
-        // std::cout << "level: " << level << " size: " << levels_[level].size()
-        //           << std::endl;
         if (levels_[level].size() > 0)
         {
             for (auto i : levels_[level])
