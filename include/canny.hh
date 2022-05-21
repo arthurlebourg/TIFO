@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 #include "matrix.hh"
 
 enum Edge : uint8_t
@@ -29,6 +31,22 @@ inline Blur &operator--(Blur &blur)
     if (new_blur < 0)
         new_blur = static_cast<int>(Blur::__LAST_BLUR) - 1;
     return blur = static_cast<Blur>(new_blur);
+}
+
+inline std::ostream &operator<<(std::ostream &out, Blur blur)
+{
+    switch (blur)
+    {
+    case Blur::NONE:
+        return out << "NONE";
+    case Blur::GAUSS:
+        return out << "GAUSS";
+    case Blur::MEDIAN:
+        return out << "MEDIAN";
+    default:
+        break;
+    }
+    return out;
 }
 
 void edge_detection(std::vector<Matrix<float>> &buffers, Blur blur);

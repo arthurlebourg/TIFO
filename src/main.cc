@@ -136,6 +136,7 @@ int main(int argc, char *argv[])
                         ++blur;
                     if (SDL_SCANCODE_DOWN == event.key.keysym.scancode)
                         --blur;
+                    std::cout << "Selected canny blur: " << blur << std::endl;
                 }
                 if (SDL_SCANCODE_N == event.key.keysym.scancode)
                 {
