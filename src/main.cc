@@ -4,17 +4,21 @@
 #include <iomanip>
 #include <iostream>
 #include <set>
+// #include <tbb/tbb.h> // To disable multi-threading
 #include <thread>
 #include <vector>
 
 #include "canny.hh"
 #include "filters.hh"
 #include "gauss.hh"
+#include "kernels.hh"
 #include "octree.hh"
 
 int main(int argc, char *argv[])
 {
     SDL_Init(SDL_INIT_EVERYTHING);
+
+    // tbb::task_scheduler_init t_init(1); // To disable multi-threading
 
     SDL_Window *window = SDL_CreateWindow("TIFO", SDL_WINDOWPOS_UNDEFINED,
                                           SDL_WINDOWPOS_UNDEFINED, screen_width,
@@ -81,6 +85,8 @@ int main(int argc, char *argv[])
     bool dark_borders = false;
     bool edges_only = false;
     bool pixelate = false;
+
+    auto square = square_kernel(3, 3);
 
     while (running)
     {
@@ -161,7 +167,11 @@ int main(int argc, char *argv[])
         {
             to_grayscale(raw_buffer, canny_buffers[0]);
             edge_detection(canny_buffers);
-            set_dark_borders(raw_buffer, canny_buffers[0]);
+
+            // Dilation to thicken edges, WIP
+            canny_buffers[0].morph(square, true, canny_buffers[1]);
+
+            set_dark_borders(raw_buffer, canny_buffers[1]);
         }
 
         if (edges_only)

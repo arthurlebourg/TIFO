@@ -91,44 +91,35 @@ void Matrix<T>::convolve(Matrix<T> &kernel, Matrix<T> &output)
 template <typename T>
 void Matrix<T>::morph(Matrix<T> &kernel, bool is_dilation, Matrix<T> &output)
 {
-    float val;
     size_t sz = (kernel.get_rows() - 1) / 2;
 
     tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, output.get_rows()),
+        tbb::blocked_range<size_t>(0, mRows),
         [&](tbb::blocked_range<size_t> r) {
             for (size_t i = r.begin(); i < r.end(); i++)
             {
                 for (size_t j = 0; j < mCols; j++)
                 {
-                    if (isonboundary(i, j, sz))
+                    T acc{};
+                    if (!isonboundary(i, j, sz))
                     {
-                        val = 0;
-                    }
-                    else
-                    {
-                        std::vector<float> list;
                         for (size_t ii = 0; ii < kernel.get_rows(); ii++)
                         {
                             for (size_t jj = 0; jj < kernel.get_cols(); jj++)
                             {
-                                if (kernel.safe_at(jj, ii) == 1)
-                                {
-                                    list.push_back(
-                                        safe_at(j + jj - sz, i + ii - sz));
-                                }
+                                if (kernel.get_value(jj, ii) < 0.5)
+                                    continue;
+
+                                auto val = get_value(j + jj - sz, i + ii - sz);
+
+                                if (is_dilation && val > acc)
+                                    acc = val;
+                                else if (!is_dilation && val < acc)
+                                    acc = val;
                             }
                         }
-                        if (is_dilation)
-                        {
-                            val = *std::max_element(list.begin(), list.end());
-                        }
-                        else
-                        {
-                            val = *std::min_element(list.begin(), list.end());
-                        }
                     }
-                    output.set_value(j, i, val);
+                    output.set_value(j, i, acc);
                 }
             }
         });
