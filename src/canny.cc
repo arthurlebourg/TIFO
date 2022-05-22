@@ -59,7 +59,7 @@ void non_maximum_suppression(Matrix<float> &gradient_in,
             {
                 for (size_t j = 0; j < gradient_in.get_cols(); j++)
                 {
-                    float angle = angle_in.safe_at(j, i) * 180 / M_PI;
+                    float angle = angle_in.get_value(j, i) * 180 / M_PI;
 
                     if (angle < 0)
                         angle += 180;
@@ -101,13 +101,11 @@ void non_maximum_suppression(Matrix<float> &gradient_in,
         });
 }
 
-void weak_strong_edges_thresholding(Matrix<float> &input, Matrix<float> &output)
+void weak_strong_edges_thresholding(Matrix<float> &input, Matrix<float> &output,
+                                    float lo, float hi)
 {
-    const float low_threshold_ratio = 0.03;
-    const float hight_threshold_ratio = 0.05;
-
-    float high_threshold = input.get_max() * hight_threshold_ratio;
-    float low_threshold = high_threshold * low_threshold_ratio;
+    float high_threshold = input.get_max() * hi;
+    float low_threshold = high_threshold * lo;
 
     tbb::parallel_for(tbb::blocked_range<size_t>(0, input.get_rows()),
                       [&](tbb::blocked_range<size_t> r) {
@@ -168,6 +166,15 @@ void weak_edges_removal(Matrix<float> &input, Matrix<float> &output)
 
 void edge_detection(std::vector<Matrix<float>> &buffers, Blur blur)
 {
+    const float low_threshold_ratio = 0.030;
+    const float hight_threshold_ratio = 0.150;
+
+    edge_detection(buffers, blur, low_threshold_ratio, hight_threshold_ratio);
+}
+
+void edge_detection(std::vector<Matrix<float>> &buffers, Blur blur,
+                    float low_threshold_ratio, float hight_threshold_ratio)
+{
     switch (blur)
     {
     case Blur::NONE:
@@ -175,11 +182,12 @@ void edge_detection(std::vector<Matrix<float>> &buffers, Blur blur)
     case Blur::GAUSS:
         gaussian_blur(buffers[0], buffers[1]);
         gaussian_blur(buffers[1], buffers[0]);
-        buffers[1].get_data().swap(buffers[0].get_data());
+
+        buffers[1].swap(buffers[0]);
         break;
     case Blur::MEDIAN:
         median_filter(buffers[0], buffers[1], 5);
-        buffers[1].get_data().swap(buffers[0].get_data());
+        buffers[1].swap(buffers[0]);
         break;
     default:
         break;
@@ -189,7 +197,8 @@ void edge_detection(std::vector<Matrix<float>> &buffers, Blur blur)
 
     non_maximum_suppression(buffers[1], buffers[2], buffers[0]);
 
-    weak_strong_edges_thresholding(buffers[0], buffers[1]);
+    weak_strong_edges_thresholding(buffers[0], buffers[1], low_threshold_ratio,
+                                   hight_threshold_ratio);
 
     weak_edges_removal(buffers[1], buffers[0]);
 }

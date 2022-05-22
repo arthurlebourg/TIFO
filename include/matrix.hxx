@@ -5,7 +5,7 @@
 #include "matrix.hh"
 
 template <typename T>
-void Matrix<T>::set_values(std::vector<T> val)
+void Matrix<T>::set_values(std::vector<T> &val)
 {
     if (val.size() != mRows * mCols)
     {
@@ -13,6 +13,12 @@ void Matrix<T>::set_values(std::vector<T> val)
         return;
     }
     mData = val; // copy, equivalent to std::copy
+}
+
+template <typename T>
+void Matrix<T>::swap(Matrix<T> &mat)
+{
+    mData.swap(mat.get_data());
 }
 
 template <typename T>
