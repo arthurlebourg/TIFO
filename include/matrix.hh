@@ -52,6 +52,7 @@ public:
 
     // With bounds check
     T safe_at(size_t x, size_t y);
+    void safe_set(size_t x, size_t y, T val);
 
     Matrix<T> operator+=(const Matrix<T> &rhs);
     Matrix<T> operator*=(const Matrix<T> &rhs);

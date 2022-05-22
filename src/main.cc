@@ -149,13 +149,6 @@ int main(int argc, char *argv[])
                     dark_borders = false;
                     edges_only = !edges_only;
                 }
-                if (state[SDL_SCANCODE_D])
-                {
-                    border_dilation = dark_borders && !border_dilation;
-                    std::cout << "Border dilation: "
-                              << (border_dilation ? "enabled" : "disabled")
-                              << std::endl;
-                }
                 if (state[SDL_SCANCODE_N])
                 {
                     pixelate = !pixelate;
@@ -176,6 +169,14 @@ int main(int argc, char *argv[])
                 }
                 if (dark_borders || edges_only)
                 {
+                    if (state[SDL_SCANCODE_D])
+                    {
+                        border_dilation = !border_dilation;
+                        std::cout << "Border dilation: "
+                                  << (border_dilation ? "enabled" : "disabled")
+                                  << std::endl;
+                    }
+
                     if (state[SDL_SCANCODE_RIGHT])
                     {
                         ++blur;
@@ -273,9 +274,9 @@ int main(int argc, char *argv[])
 
             if (border_dilation)
             {
-                // Dilation to thicken edges, WIP
-                canny_buffers[0].morph(square, true, canny_buffers[1]);
-                canny_buffers[0].swap(canny_buffers[1]);
+                thicken_edges(canny_buffers[0], canny_buffers[2],
+                              canny_buffers[1]);
+                canny_buffers[1].swap(canny_buffers[0]);
             }
 
             set_dark_borders(raw_buffer, canny_buffers[0]);
@@ -287,6 +288,12 @@ int main(int argc, char *argv[])
             edge_detection(canny_buffers, blur, low_threshold_ratio,
                            high_threshold_ratio);
             // remap_to_rgb(canny_edge_buffers[0]);
+            if (border_dilation)
+            {
+                thicken_edges(canny_buffers[0], canny_buffers[2],
+                              canny_buffers[1]);
+                canny_buffers[1].swap(canny_buffers[0]);
+            }
             fill_buffer(raw_buffer, canny_buffers[0]);
         }
 

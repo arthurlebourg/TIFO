@@ -178,6 +178,13 @@ T Matrix<T>::safe_at(size_t x, size_t y)
 }
 
 template <typename T>
+void Matrix<T>::safe_set(size_t x, size_t y, T val)
+{
+    if (is_in_bound(x, y))
+        mData[y * mCols + x] = val;
+}
+
+template <typename T>
 Matrix<T> Matrix<T>::operator+=(const Matrix<T> &rhs)
 {
     if (mCols != rhs.mCols || rhs.mRows != mRows)

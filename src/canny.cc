@@ -69,8 +69,8 @@ void non_maximum_suppression(Matrix<float> &gradient_in,
                     // 0°
                     if (angle < 22.5 || angle >= 157.5)
                     {
-                        q = gradient_in.safe_at(j + 1, i);
                         r = gradient_in.safe_at(j - 1, i);
+                        q = gradient_in.safe_at(j + 1, i);
                     }
                     // 45°
                     else if (angle >= 22.5 && angle < 67.5)
@@ -81,8 +81,8 @@ void non_maximum_suppression(Matrix<float> &gradient_in,
                     // 90°
                     else if (angle >= 67.5 && angle < 112.5)
                     {
-                        q = gradient_in.safe_at(j, i + 1);
                         r = gradient_in.safe_at(j, i - 1);
+                        q = gradient_in.safe_at(j, i + 1);
                     }
                     // 135°
                     else if (angle >= 112.5 && angle < 157.5)
@@ -201,4 +201,55 @@ void edge_detection(std::vector<Matrix<float>> &buffers, Blur blur,
                                    hight_threshold_ratio);
 
     weak_edges_removal(buffers[1], buffers[0]);
+}
+
+void thicken_edges(Matrix<float> &edges_in, Matrix<float> &angle_in,
+                   Matrix<float> &edges_out)
+{
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, edges_in.get_rows()),
+        [&](tbb::blocked_range<size_t> r) {
+            for (size_t i = r.begin(); i < r.end(); i++)
+            {
+                for (size_t j = 0; j < edges_in.get_cols(); j++)
+                {
+                    float value = edges_in.get_value(j, i);
+
+                    if (value > 0.5)
+                    {
+                        float angle = angle_in.get_value(j, i) * 180 / M_PI;
+
+                        if (angle < 0)
+                            angle += 180;
+
+                        // 0°
+                        if (angle < 22.5 || angle >= 157.5)
+                        {
+                            edges_out.safe_set(j - 1, i, STRONG);
+                            edges_out.safe_set(j + 1, i, STRONG);
+                        }
+                        // 45°
+                        else if (angle >= 22.5 && angle < 67.5)
+                        {
+                            edges_out.safe_set(j - 1, i - 1, STRONG);
+                            edges_out.safe_set(j + 1, i + 1, STRONG);
+                        }
+                        // 90°
+                        else if (angle >= 67.5 && angle < 112.5)
+                        {
+                            edges_out.safe_set(j, i - 1, STRONG);
+                            edges_out.safe_set(j, i + 1, STRONG);
+                        }
+                        // 135°
+                        else if (angle >= 112.5 && angle < 157.5)
+                        {
+                            edges_out.safe_set(j - 1, i + 1, STRONG);
+                            edges_out.safe_set(j + 1, i - 1, STRONG);
+                        }
+                    }
+
+                    edges_out.set_value(j, i, value);
+                }
+            }
+        });
 }
