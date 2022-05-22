@@ -219,7 +219,7 @@ std::vector<size_t> Quantizer::get_cumulative_histogram()
     std::vector<size_t> cum_histo(256, 0);
     for (auto i : histogram_)
     {
-        cum_histo[i.first.v * 256] += i.second;
+        cum_histo[i.first.v * 255] += i.second;
     }
     for (size_t i = 1; i < 256; i++)
     {
