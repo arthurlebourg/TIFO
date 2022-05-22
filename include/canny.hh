@@ -49,4 +49,5 @@ inline std::ostream &operator<<(std::ostream &out, Blur blur)
     return out;
 }
 
-void edge_detection(std::vector<Matrix<float>> &buffers, Blur blur);
+void edge_detection(std::vector<Matrix<float>> &buffers, Blur blur,
+                    float low_threshold_ratio, float hight_threshold_ratio);

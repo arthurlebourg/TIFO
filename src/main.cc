@@ -83,10 +83,13 @@ int main(int argc, char *argv[])
     bool palette_init = false;
     bool generate_palette = false;
     bool dark_borders = false;
+    bool border_dilation = true;
     bool edges_only = false;
     bool pixelate = false;
 
-    Blur blur = Blur::NONE;
+    Blur blur = Blur::GAUSS;
+    float low_threshold_ratio = 0.030;
+    float high_threshold_ratio = 0.150;
 
     auto square = square_kernel(2, 2);
 
@@ -111,36 +114,72 @@ int main(int argc, char *argv[])
                 running = false;
                 break;
             }
+
             if (SDL_KEYDOWN == event.type)
             {
-                if (SDL_SCANCODE_C == event.key.keysym.scancode)
+                auto state = SDL_GetKeyboardState(NULL);
+                if (state[SDL_SCANCODE_C])
                 {
                     color_quantization = palette_init && !color_quantization;
                 }
-                if (SDL_SCANCODE_P == event.key.keysym.scancode)
+                if (state[SDL_SCANCODE_P])
                 {
                     generate_palette = !generate_palette;
                 }
-                if (SDL_SCANCODE_B == event.key.keysym.scancode)
+                if (state[SDL_SCANCODE_B])
                 {
-                    dark_borders = !dark_borders;
                     edges_only = false;
+                    dark_borders = !dark_borders;
                 }
-                if (SDL_SCANCODE_E == event.key.keysym.scancode)
+                if (state[SDL_SCANCODE_E])
                 {
-                    edges_only = !dark_borders && !edges_only;
+                    dark_borders = false;
+                    edges_only = !edges_only;
+                }
+                if (state[SDL_SCANCODE_D])
+                {
+                    border_dilation = dark_borders && !border_dilation;
+                }
+                if (state[SDL_SCANCODE_N])
+                {
+                    pixelate = !pixelate;
                 }
                 if (dark_borders || edges_only)
                 {
-                    if (SDL_SCANCODE_UP == event.key.keysym.scancode)
+                    if (state[SDL_SCANCODE_RIGHT])
+                    {
                         ++blur;
-                    if (SDL_SCANCODE_DOWN == event.key.keysym.scancode)
+                        std::cout << "Selected canny blur: " << blur
+                                  << std::endl;
+                    }
+                    else if (state[SDL_SCANCODE_LEFT])
+                    {
                         --blur;
-                    std::cout << "Selected canny blur: " << blur << std::endl;
-                }
-                if (SDL_SCANCODE_N == event.key.keysym.scancode)
-                {
-                    pixelate = !pixelate;
+                        std::cout << "Selected canny blur: " << blur
+                                  << std::endl;
+                    }
+                    else if (state[SDL_SCANCODE_UP])
+                    {
+                        if (state[SDL_SCANCODE_L])
+                            low_threshold_ratio += 0.01;
+                        else if (state[SDL_SCANCODE_H])
+                            high_threshold_ratio += 0.01;
+
+                        std::cout << "Set threshold ratios to: "
+                                  << low_threshold_ratio << ", "
+                                  << high_threshold_ratio << std::endl;
+                    }
+                    else if (state[SDL_SCANCODE_DOWN])
+                    {
+                        if (state[SDL_SCANCODE_L])
+                            low_threshold_ratio -= 0.01;
+                        else if (state[SDL_SCANCODE_H])
+                            high_threshold_ratio -= 0.01;
+
+                        std::cout << "Set threshold ratios to: "
+                                  << low_threshold_ratio << ", "
+                                  << high_threshold_ratio << std::endl;
+                    }
                 }
             }
         }
@@ -176,18 +215,24 @@ int main(int argc, char *argv[])
         if (dark_borders)
         {
             to_grayscale(raw_buffer, canny_buffers[0]);
-            edge_detection(canny_buffers, blur);
+            edge_detection(canny_buffers, blur, low_threshold_ratio,
+                           high_threshold_ratio);
 
-            // Dilation to thicken edges, WIP
-            canny_buffers[0].morph(square, true, canny_buffers[1]);
+            if (border_dilation)
+            {
+                // Dilation to thicken edges, WIP
+                canny_buffers[0].morph(square, true, canny_buffers[1]);
+                canny_buffers[0].swap(canny_buffers[1]);
+            }
 
-            set_dark_borders(raw_buffer, canny_buffers[1]);
+            set_dark_borders(raw_buffer, canny_buffers[0]);
         }
 
         if (edges_only)
         {
             to_grayscale(raw_buffer, canny_buffers[0]);
-            edge_detection(canny_buffers, blur);
+            edge_detection(canny_buffers, blur, low_threshold_ratio,
+                           high_threshold_ratio);
             // remap_to_rgb(canny_edge_buffers[0]);
             fill_buffer(raw_buffer, canny_buffers[0]);
         }

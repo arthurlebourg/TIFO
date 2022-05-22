@@ -29,7 +29,8 @@ public:
         , mData(mData)
     {}
 
-    void set_values(std::vector<T> val);
+    void set_values(std::vector<T> &val);
+    void swap(Matrix<T> &mat);
 
     T get_min();
     T get_max();
