@@ -211,11 +211,8 @@ int main(int argc, char *argv[])
 
         if (color_quantization)
         {
-            to_rgb_matrix(raw_buffer, pixels_matrix);
-            // bilateral_filter(bil_filter_buffer, pixels_matrix, 5);
-            //  remap_to_rgb(bil_filter_buffer);
-            // fill_buffer(raw_buffer, bil_filter_buffer);
             apply_palette(raw_buffer, q, palette);
+            boost_luminance(raw_buffer);
             //  apply_palette_debug(raw_buffer, q, palette, screen_width /
             //  2);
         }

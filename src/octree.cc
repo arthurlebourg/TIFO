@@ -124,7 +124,7 @@ size_t Node::remove_leaves()
 
 Color Node::get_color()
 {
-    return c_.normalized_biased(pixel_count_);
+    return c_.normalized(pixel_count_);
 }
 
 void Node::set_palette_index(size_t index)

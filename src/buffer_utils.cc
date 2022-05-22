@@ -31,6 +31,94 @@ void to_rgb_matrix(unsigned char *raw_buffer, Matrix<Color> &output)
         });
 }
 
+void boost_luminance(unsigned char *raw_buffer)
+{
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, screen_height * screen_width),
+        [&](tbb::blocked_range<size_t> r) {
+            for (size_t i = r.begin(); i < r.end(); i++)
+            {
+                Color value = get_pixel(raw_buffer, i * 4);
+                float r = value.red() / 255.0;
+                float g = value.green() / 255.0;
+                float b = value.blue() / 255.0;
+
+                float c_max = std::max(r, std::max(g, b));
+                float c_min = std::min(r, std::min(g, b));
+
+                float delta = c_max - c_min;
+
+                float h = 0;
+                if (delta == 0)
+                {
+                    h = 0;
+                }
+                else if (c_max == r)
+                {
+                    h = 60 * std::fmod((g - b) / delta, 6);
+                }
+                else if (c_max == g)
+                {
+                    h = 60 * ((b - r) / delta + 2);
+                }
+                else if (c_max == b)
+                {
+                    h = 60 * ((r - g) / delta + 4);
+                }
+
+                float s = c_max == 0 ? 0 : delta / c_max;
+
+                float v = c_max;
+
+                // saturation:
+                s *= 1.5;
+
+                // to rgb
+
+                float c = v * s;
+                float x = c * (1 - std::abs(std::fmod(h / 60.0, 2) - 1));
+                float m = v - c;
+
+                r = 0;
+                g = 0;
+                b = 0;
+                if (h >= 0 && h < 60)
+                {
+                    r = c;
+                    g = x;
+                }
+                else if (h >= 60 && h < 120)
+                {
+                    r = x;
+                    g = c;
+                }
+                else if (h >= 120 && h < 180)
+                {
+                    g = c;
+                    b = x;
+                }
+                else if (h >= 180 && h < 240)
+                {
+                    g = x;
+                    b = c;
+                }
+                else if (h >= 240 && h < 300)
+                {
+                    r = x;
+                    b = c;
+                }
+                else if (h >= 300 && h < 360)
+                {
+                    r = c;
+                    b = x;
+                }
+
+                Color res((r + m) * 255, (g + m) * 255, (b + m) * 255, 255);
+                set_pixel(raw_buffer, i * 4, res);
+            }
+        });
+}
+
 void fill_buffer(unsigned char *raw_buffer, Matrix<Color> &mat)
 {
     tbb::parallel_for(
