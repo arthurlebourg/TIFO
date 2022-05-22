@@ -214,9 +214,9 @@ std::vector<std::pair<HSV, size_t>> Quantizer::get_histogram()
     return histogram_;
 }
 
-std::vector<size_t> Quantizer::get_cumulative_histogram()
+tbb::concurrent_vector<size_t> Quantizer::get_lightness_cumulative_histogram()
 {
-    std::vector<size_t> cum_histo(256, 0);
+    tbb::concurrent_vector<size_t> cum_histo(256, 0u);
     for (auto i : histogram_)
     {
         cum_histo[i.first.v * 255] += i.second;

@@ -80,6 +80,7 @@ int main(int argc, char *argv[])
 
     Quantizer q;
     std::vector<RGB> palette;
+    tbb::concurrent_vector<size_t> palette_lightness_cumul_histo;
     int palette_number = 40;
 
     int count;
@@ -156,7 +157,8 @@ int main(int argc, char *argv[])
                 }
                 if (state[SDL_SCANCODE_X])
                 {
-                    contrast_cor = color_quantization && !contrast_cor;
+                    // contrast_cor = color_quantization && !contrast_cor;
+                    contrast_cor = !contrast_cor;
                     std::cout << "Contrast correction: "
                               << (contrast_cor ? "enabled" : "disabled")
                               << std::endl;
@@ -248,6 +250,9 @@ int main(int argc, char *argv[])
             palette = q.make_palette(palette_number);
             std::cout << "color palette: " << palette.size() << std::endl;
 
+            palette_lightness_cumul_histo =
+                q.get_lightness_cumulative_histogram();
+
             palette_init = true;
             generate_palette = false;
         }
@@ -284,16 +289,24 @@ int main(int argc, char *argv[])
 
         if (color_quantization)
         {
+            // if (contrast_cor) // From raw buffer
+            // {
+            //     auto c_histo = compute_lightness_cumul_histogram(raw_buffer);
+            //     contrast_correction(raw_buffer, c_histo);
+            // }
+
             apply_palette(raw_buffer, q, palette);
+
+            if (contrast_cor) // From palette
+            {
+                contrast_correction(raw_buffer, palette_lightness_cumul_histo);
+            }
+
             if (saturation_boost)
             {
                 saturation_modification(raw_buffer, saturation_value);
             }
-            if (contrast_cor)
-            {
-                std::vector<size_t> histo = q.get_cumulative_histogram();
-                contrast_correction(raw_buffer, histo);
-            }
+
             //  apply_palette_debug(raw_buffer, q, palette, screen_width /
             //  2);
         }

@@ -52,8 +52,28 @@ void saturation_modification(unsigned char *raw_buffer,
         });
 }
 
+tbb::concurrent_vector<size_t>
+compute_lightness_cumul_histogram(unsigned char *raw_buffer)
+{
+    tbb::concurrent_vector<size_t> histo(256, 0u);
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, screen_height * screen_width),
+        [&](tbb::blocked_range<size_t> r) {
+            for (size_t i = r.begin(); i < r.end(); i++)
+            {
+                auto color = get_pixel(raw_buffer, i * 4);
+                auto hsv = to_hsv(color);
+                histo[hsv.v * 255]++;
+            }
+        });
+
+    for (size_t i = 1; i < 256; i++)
+        histo[i] += histo[i - 1];
+    return histo;
+}
+
 void contrast_correction(unsigned char *raw_buffer,
-                         std::vector<size_t> cum_histo)
+                         tbb::concurrent_vector<size_t> &cum_histo)
 {
     auto cdf_min = cum_histo[0];
     for (size_t i = 0; i < cum_histo.size(); i++)
@@ -130,7 +150,7 @@ void apply_palette_debug(unsigned char *raw_buffer, Quantizer &q,
 
 void pixelate_buffer(unsigned char *raw_buffer, size_t pixel_size)
 {
-    for (size_t i = 0; i < screen_width; i += pixel_size)
+    for (size_t i = 0; i < screen_height; i += pixel_size)
     {
         for (size_t j = 0; j < screen_width; j += pixel_size)
         {

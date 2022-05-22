@@ -1,5 +1,6 @@
 #pragma once
 #include <set>
+#include <tbb/concurrent_vector.h>
 
 #include "color.hh"
 #include "matrix.hh"
@@ -41,10 +42,17 @@ void saturation_modification(unsigned char *raw_buffer,
                              const double saturation_factor);
 
 /*
+ * Compute cumulative histogram of V channel in HSV color space, assumes RGB
+ * buffer
+ */
+tbb::concurrent_vector<size_t>
+compute_lightness_cumul_histogram(unsigned char *raw_buffer);
+
+/*
  * Does a constrast correction on HSV, assumes RGB buffer
  */
 void contrast_correction(unsigned char *raw_buffer,
-                         std::vector<size_t> cum_histo);
+                         tbb::concurrent_vector<size_t> &cum_histo);
 
 /*
  * Remap matrix values to RGB range (0-255)
