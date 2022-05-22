@@ -182,8 +182,8 @@ std::vector<RGB> Quantizer::make_palette(size_t color_amount)
 
         if (i->is_leaf())
         {
-            palette.push_back(i->get_color());
             RGB col = i->get_color();
+            palette.push_back(col);
             std::pair<HSV, size_t> elm =
                 std::make_pair(to_hsv(col), i->get_pixel_count());
             histogram_.push_back(elm);

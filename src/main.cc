@@ -90,8 +90,9 @@ int main(int argc, char *argv[])
     bool border_dilation = true;
     bool edges_only = false;
     bool pixelate = false;
+
     bool saturation_boost = true;
-    bool contrast_cor = true;
+    bool contrast_cor = false;
 
     Blur blur = Blur::GAUSS;
     float low_threshold_ratio = 0.030;
@@ -157,7 +158,7 @@ int main(int argc, char *argv[])
                 {
                     contrast_cor = color_quantization && !contrast_cor;
                     std::cout << "Contrast correction: "
-                              << (saturation_boost ? "enabled" : "disabled")
+                              << (contrast_cor ? "enabled" : "disabled")
                               << std::endl;
                 }
                 if (state[SDL_SCANCODE_S])
@@ -257,11 +258,14 @@ int main(int argc, char *argv[])
         {
             apply_palette(raw_buffer, q, palette);
             if (saturation_boost)
+            {
                 saturation_modification(raw_buffer, saturation_value);
-
-            std::vector<size_t> histo = q.get_cumulative_histogram();
+            }
             if (contrast_cor)
+            {
+                std::vector<size_t> histo = q.get_cumulative_histogram();
                 contrast_correction(raw_buffer, histo);
+            }
             //  apply_palette_debug(raw_buffer, q, palette, screen_width /
             //  2);
         }

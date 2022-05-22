@@ -55,6 +55,16 @@ void saturation_modification(unsigned char *raw_buffer,
 void contrast_correction(unsigned char *raw_buffer,
                          std::vector<size_t> cum_histo)
 {
+    auto cdf_min = cum_histo[0];
+    for (size_t i = 0; i < cum_histo.size(); i++)
+    {
+        if (cum_histo[i] > 0)
+        {
+            cdf_min = cum_histo[0];
+            break;
+        }
+    }
+
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, screen_height * screen_width),
         [&](tbb::blocked_range<size_t> r) {
@@ -63,8 +73,8 @@ void contrast_correction(unsigned char *raw_buffer,
                 auto color = get_pixel(raw_buffer, i * 4);
                 auto hsv = to_hsv(color);
 
-                hsv.v *=
-                    cum_histo[hsv.v * 256] / (screen_height * screen_width);
+                hsv.v = (float)(cum_histo[hsv.v * 256] - cdf_min)
+                    / (screen_height * screen_width - cdf_min);
 
                 auto new_color = to_rgb(hsv);
                 set_pixel(raw_buffer, i * 4, new_color);
