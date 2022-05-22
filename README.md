@@ -1,20 +1,20 @@
 # How to use
 
-## Edges only mode
+## Edges (Canny)
 
-- B to activate when other filters are off
-- right and left arrows to update the canny blur
+- **E** display raw detected edges
+- **B** apply border darkening
+- **D** apply border dilation/thickening
+- **RIGHT** and **LEFT** arrows to select blur function
+- **L** / **H** + **UP** / **DOWN** to update low/high thresholds
 
-## Normal mode
+## Color
 
-- N for pixel filter
-- D for border dilation
-- E for dark borders
-- P to compute color palette
-- C to apply color palette
+- **P** compute color palette (Color Quantization)
+- **C** apply color palette
+- **S** apply color saturation boost
+- **UP** / **DOWN** arrows to update saturation value
 
-
-- Update the thresholds
-	> H + up / down arrows for the high threshold
-	> L + up / down arrows for the high threshold
+## Misc
+- **N** apply pixel filter
 

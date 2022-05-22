@@ -10,9 +10,9 @@ void to_grayscale(unsigned char *raw_buffer, Matrix<T> &output)
         [&](tbb::blocked_range<size_t> r) {
             for (size_t i = r.begin(); i < r.end(); i++)
             {
-                Color color = get_pixel(raw_buffer, i * 4);
-                output.get_data()[i] = color.red() * 0.299
-                    + color.green() * 0.587 + color.blue() * 0.114;
+                RGB color = get_pixel(raw_buffer, i * 4);
+                output.get_data()[i] =
+                    color.r * 0.299 + color.g * 0.587 + color.b * 0.114;
             }
         });
 }
@@ -43,7 +43,7 @@ void fill_buffer(unsigned char *raw_buffer, Matrix<T> &mat)
             for (size_t i = r.begin(); i < r.end(); i++)
             {
                 unsigned char value = (unsigned char)mat.get_data()[i];
-                Color c(value, value, value, 255);
+                RGB c(value, value, value);
                 set_pixel(raw_buffer, i * 4, c);
             }
         });
@@ -52,7 +52,7 @@ void fill_buffer(unsigned char *raw_buffer, Matrix<T> &mat)
 template <typename T>
 void set_dark_borders(unsigned char *raw_buffer, Matrix<T> &border_mask)
 {
-    auto border_color = Color(0, 0, 0, 255);
+    auto border_color = RGB(0, 0, 0);
 
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, screen_height * screen_width),

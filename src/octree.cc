@@ -1,18 +1,18 @@
 #include "octree.hh"
 
-size_t get_color_index(Color c, size_t level)
+size_t get_color_index(RGB c, size_t level)
 {
     size_t index = 0;
     size_t mask = 0b10000000 >> level;
-    if (c.red() & mask)
+    if (c.r & mask)
     {
         index |= 0b100;
     }
-    if (c.green() & mask)
+    if (c.g & mask)
     {
         index |= 0b010;
     }
-    if (c.blue() & mask)
+    if (c.b & mask)
     {
         index |= 0b001;
     }
@@ -20,7 +20,7 @@ size_t get_color_index(Color c, size_t level)
 }
 
 Node::Node()
-    : c_(Color(0, 0, 0, 255))
+    : c_(RGB(0, 0, 0))
     , pixel_count_(0)
     , palette_index_(0)
 {
@@ -53,7 +53,7 @@ std::vector<std::shared_ptr<Node>> Node::get_leaves()
     return nodes;
 }
 
-void Node::add_color(Color c, size_t level, Quantizer *parent)
+void Node::add_color(RGB c, size_t level, Quantizer *parent)
 {
     if (level >= MAX_DEPTH)
     {
@@ -72,7 +72,7 @@ void Node::add_color(Color c, size_t level, Quantizer *parent)
     children_[index]->add_color(c, level + 1, parent);
 }
 
-size_t Node::get_palette_index(Color c, size_t level)
+size_t Node::get_palette_index(RGB c, size_t level)
 {
     if (is_leaf())
     {
@@ -122,7 +122,7 @@ size_t Node::remove_leaves()
     return result - 1;
 }
 
-Color Node::get_color()
+RGB Node::get_color()
 {
     return c_.normalized(pixel_count_);
 }
@@ -142,14 +142,14 @@ Quantizer::Quantizer()
     root_ = std::make_shared<Node>(Node());
 }
 
-void Quantizer::add_color(Color c)
+void Quantizer::add_color(RGB c)
 {
     root_->add_color(c, 0, this);
 }
 
-std::vector<Color> Quantizer::make_palette(size_t color_amount)
+std::vector<RGB> Quantizer::make_palette(size_t color_amount)
 {
-    std::vector<Color> palette;
+    std::vector<RGB> palette;
     size_t palette_index = 0;
     size_t leaf_count = get_leaf_nodes().size();
     for (size_t level = MAX_DEPTH - 1; level < MAX_DEPTH; level--)
@@ -194,7 +194,7 @@ void Quantizer::add_level_node(size_t level, std::shared_ptr<Node> node)
     levels_[level].push_back(node);
 }
 
-size_t Quantizer::get_palette_index(Color c)
+size_t Quantizer::get_palette_index(RGB c)
 {
     return root_->get_palette_index(c, 0);
 }

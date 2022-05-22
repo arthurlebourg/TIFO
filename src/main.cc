@@ -74,12 +74,12 @@ int main(int argc, char *argv[])
     std::vector<Matrix<float>> canny_buffers(
         3, Matrix<float>(screen_height, screen_width, 0));
 
-    Matrix<Color> bil_filter_buffer(screen_height, screen_width, Color());
+    Matrix<RGB> bil_filter_buffer(screen_height, screen_width, RGB());
 
-    Matrix<Color> pixels_matrix(screen_height, screen_width, Color());
+    Matrix<RGB> pixels_matrix(screen_height, screen_width, RGB());
 
     Quantizer q;
-    std::vector<Color> palette;
+    std::vector<RGB> palette;
     int palette_number = 40;
 
     int count;
@@ -90,10 +90,12 @@ int main(int argc, char *argv[])
     bool border_dilation = true;
     bool edges_only = false;
     bool pixelate = false;
+    bool saturation_boost = true;
 
     Blur blur = Blur::GAUSS;
     float low_threshold_ratio = 0.030;
     float high_threshold_ratio = 0.150;
+    float saturation_value = 1.5;
 
     auto square = square_kernel(2, 2);
 
@@ -125,6 +127,9 @@ int main(int argc, char *argv[])
                 if (state[SDL_SCANCODE_C])
                 {
                     color_quantization = palette_init && !color_quantization;
+                    std::cout << "Color quantization: "
+                              << (color_quantization ? "enabled" : "disabled")
+                              << std::endl;
                 }
                 if (state[SDL_SCANCODE_P])
                 {
@@ -134,6 +139,9 @@ int main(int argc, char *argv[])
                 {
                     edges_only = false;
                     dark_borders = !dark_borders;
+                    std::cout << "Border darkening: "
+                              << (dark_borders ? "enabled" : "disabled")
+                              << std::endl;
                 }
                 if (state[SDL_SCANCODE_E])
                 {
@@ -143,10 +151,20 @@ int main(int argc, char *argv[])
                 if (state[SDL_SCANCODE_D])
                 {
                     border_dilation = dark_borders && !border_dilation;
+                    std::cout << "Border dilation: "
+                              << (border_dilation ? "enabled" : "disabled")
+                              << std::endl;
                 }
                 if (state[SDL_SCANCODE_N])
                 {
                     pixelate = !pixelate;
+                }
+                if (state[SDL_SCANCODE_S])
+                {
+                    saturation_boost = color_quantization && !saturation_boost;
+                    std::cout << "Saturation boost: "
+                              << (saturation_boost ? "enabled" : "disabled")
+                              << std::endl;
                 }
                 if (dark_borders || edges_only)
                 {
@@ -185,6 +203,23 @@ int main(int argc, char *argv[])
                                   << high_threshold_ratio << std::endl;
                     }
                 }
+                if (saturation_boost)
+                {
+                    if (state[SDL_SCANCODE_UP])
+                    {
+                        saturation_value += 0.1;
+                        std::cout
+                            << "Set saturation boost to: " << saturation_value
+                            << std::endl;
+                    }
+                    else if (state[SDL_SCANCODE_DOWN])
+                    {
+                        saturation_value -= 0.1;
+                        std::cout
+                            << "Set saturation boost to: " << saturation_value
+                            << std::endl;
+                    }
+                }
             }
         }
 
@@ -212,7 +247,8 @@ int main(int argc, char *argv[])
         if (color_quantization)
         {
             apply_palette(raw_buffer, q, palette);
-            boost_saturation(raw_buffer);
+            if (saturation_boost)
+                saturation_modification(raw_buffer, saturation_value);
             //  apply_palette_debug(raw_buffer, q, palette, screen_width /
             //  2);
         }

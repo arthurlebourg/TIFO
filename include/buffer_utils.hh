@@ -16,20 +16,20 @@ size_t get_offset(size_t x, size_t y);
 /*
  * Read raw pixel as RGBA
  */
-Color get_pixel(unsigned char *raw_buffer, size_t offset);
+RGB get_pixel(unsigned char *raw_buffer, size_t offset);
 
 /*
  * Set raw pixel as RGBA
  */
-void set_pixel(unsigned char *raw_buffer, size_t offset, Color &col);
+void set_pixel(unsigned char *raw_buffer, size_t offset, RGB &col);
 
 /*
  * Make a Matrix out of buffer
  */
-void to_rgb_matrix(unsigned char *raw_buffer, Matrix<Color> &output);
+void to_rgb_matrix(unsigned char *raw_buffer, Matrix<RGB> &output);
 
 /*
- * Get grayscale matrix from RGBA input buffer
+ * Get grayscale matrix from RGB input buffer
  */
 template <typename T>
 void to_grayscale(unsigned char *raw_buffer, Matrix<T> &output);
@@ -37,7 +37,8 @@ void to_grayscale(unsigned char *raw_buffer, Matrix<T> &output);
 /*
  * Converts to HSV, then boosts saturation, to converts back to RGB
  */
-void boost_saturation(unsigned char *raw_buffer);
+void saturation_modification(unsigned char *raw_buffer,
+                             const double saturation_factor);
 
 /*
  * Remap matrix values to RGB range (0-255)
@@ -48,7 +49,7 @@ void remap_to_rgb(Matrix<T> &mat);
 /*
  * Fill buffer using matrix values (assumed to be in RGB range)
  */
-void fill_buffer(unsigned char *raw_buffer, Matrix<Color> &mat);
+void fill_buffer(unsigned char *raw_buffer, Matrix<RGB> &mat);
 template <typename T>
 void fill_buffer(unsigned char *raw_buffer, Matrix<T> &mat);
 
@@ -56,13 +57,13 @@ void fill_buffer(unsigned char *raw_buffer, Matrix<T> &mat);
  * Apply new color palette
  */
 void apply_palette(unsigned char *raw_buffer, Quantizer &q,
-                   std::vector<Color> &palette);
+                   std::vector<RGB> &palette);
 
 /*
  * Apply new color palette only in [0; x_limit] range
  */
 void apply_palette_debug(unsigned char *raw_buffer, Quantizer &q,
-                         std::vector<Color> &palette, size_t x_limit);
+                         std::vector<RGB> &palette, size_t x_limit);
 
 /*
  * Set detected borders in black

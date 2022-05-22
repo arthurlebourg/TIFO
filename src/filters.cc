@@ -13,11 +13,10 @@ void gaussian_blur(Matrix<float> &mat, Matrix<float> &tmp_buffer)
     tmp_buffer.convolve(GAUSS_Y, mat);
 }
 
-float euclideanLen(Color a, Color b, float d)
+float euclideanLen(RGB a, RGB b, float d)
 {
-    float mod = (b.red() - a.red()) * (b.red() - a.red())
-        + (b.green() - a.green()) * (b.green() - a.green())
-        + (b.blue() - a.blue()) * (b.blue() - a.blue());
+    float mod = (b.r - a.r) * (b.r - a.r) + (b.g - a.g) * (b.g - a.g)
+        + (b.b - a.b) * (b.b - a.b);
 
     return exp(-mod / (2.f * d * d));
 }
@@ -31,13 +30,13 @@ void updateGaussian(float delta, int radius, float *fGaussian)
     }
 }
 
-void apply_bilateral_filter(Matrix<Color> &res, Matrix<Color> &source, size_t x,
+void apply_bilateral_filter(Matrix<RGB> &res, Matrix<RGB> &source, size_t x,
                             size_t y, int r)
 {
     float sum = 0.0f;
     float factor;
-    Color t;
-    Color center = source.safe_at(x, y);
+    RGB t;
+    RGB center = source.safe_at(x, y);
     float cGaussian[64];
     updateGaussian(4, 5, cGaussian);
 
@@ -45,7 +44,7 @@ void apply_bilateral_filter(Matrix<Color> &res, Matrix<Color> &source, size_t x,
     {
         for (int j = -r; j <= r; j++)
         {
-            Color curPix = source.safe_at(x + j, y + i);
+            RGB curPix = source.safe_at(x + j, y + i);
             factor = cGaussian[i + r] * cGaussian[j + r] * // domain factor
                 euclideanLen(curPix, center, 0.1f); // range factor
 
@@ -58,8 +57,7 @@ void apply_bilateral_filter(Matrix<Color> &res, Matrix<Color> &source, size_t x,
     res.set_value(x, y, t / sum);
 }
 
-void bilateral_filter(Matrix<Color> &res, Matrix<Color> &source,
-                      size_t diameter)
+void bilateral_filter(Matrix<RGB> &res, Matrix<RGB> &source, size_t diameter)
 {
     size_t width = source.get_cols();
     size_t height = source.get_rows();
