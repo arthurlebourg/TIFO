@@ -254,6 +254,34 @@ int main(int argc, char *argv[])
 
         // Preprocess
 
+        // Compute edges BEFORE color pre-processing
+        if (dark_borders)
+        {
+            to_grayscale(raw_buffer, canny_buffers[0]);
+            edge_detection(canny_buffers, blur, low_threshold_ratio,
+                           high_threshold_ratio);
+
+            if (border_dilation)
+            {
+                thicken_edges(canny_buffers[0], canny_buffers[2],
+                              canny_buffers[1]);
+                canny_buffers[1].swap(canny_buffers[0]);
+            }
+        }
+        else if (edges_only)
+        {
+            to_grayscale(raw_buffer, canny_buffers[0]);
+            edge_detection(canny_buffers, blur, low_threshold_ratio,
+                           high_threshold_ratio);
+            // remap_to_rgb(canny_edge_buffers[0]);
+            if (border_dilation)
+            {
+                thicken_edges(canny_buffers[0], canny_buffers[2],
+                              canny_buffers[1]);
+                canny_buffers[1].swap(canny_buffers[0]);
+            }
+        }
+
         if (color_quantization)
         {
             apply_palette(raw_buffer, q, palette);
@@ -270,34 +298,13 @@ int main(int argc, char *argv[])
             //  2);
         }
 
+        // Apply edges AFTER color pre-processing
         if (dark_borders)
         {
-            to_grayscale(raw_buffer, canny_buffers[0]);
-            edge_detection(canny_buffers, blur, low_threshold_ratio,
-                           high_threshold_ratio);
-
-            if (border_dilation)
-            {
-                thicken_edges(canny_buffers[0], canny_buffers[2],
-                              canny_buffers[1]);
-                canny_buffers[1].swap(canny_buffers[0]);
-            }
-
             set_dark_borders(raw_buffer, canny_buffers[0]);
         }
-
-        if (edges_only)
+        else if (edges_only)
         {
-            to_grayscale(raw_buffer, canny_buffers[0]);
-            edge_detection(canny_buffers, blur, low_threshold_ratio,
-                           high_threshold_ratio);
-            // remap_to_rgb(canny_edge_buffers[0]);
-            if (border_dilation)
-            {
-                thicken_edges(canny_buffers[0], canny_buffers[2],
-                              canny_buffers[1]);
-                canny_buffers[1].swap(canny_buffers[0]);
-            }
             fill_buffer(raw_buffer, canny_buffers[0]);
         }
 
