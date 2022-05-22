@@ -74,6 +74,10 @@ int main(int argc, char *argv[])
     std::vector<Matrix<float>> canny_buffers(
         3, Matrix<float>(screen_height, screen_width, 0));
 
+    Matrix<Color> bil_filter_buffer(screen_height, screen_width, Color());
+
+    Matrix<Color> pixels_matrix(screen_height, screen_width, Color());
+
     Quantizer q;
     std::vector<Color> palette;
     int palette_number = 40;
@@ -168,9 +172,13 @@ int main(int argc, char *argv[])
 
         if (color_quantization)
         {
-            apply_palette(raw_buffer, q, palette);
-            // apply_palette_debug(raw_buffer, q, palette, screen_width /
-            // 2);
+            to_rgb_matrix(raw_buffer, pixels_matrix);
+            bilateral_filter(bil_filter_buffer, pixels_matrix, 5);
+            // remap_to_rgb(bil_filter_buffer);
+            fill_buffer(raw_buffer, bil_filter_buffer);
+            // apply_palette(raw_buffer, q, palette);
+            //  apply_palette_debug(raw_buffer, q, palette, screen_width /
+            //  2);
         }
 
         if (dark_borders)

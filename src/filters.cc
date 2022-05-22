@@ -68,7 +68,7 @@ void bilateral_filter(Matrix<Color> &res, Matrix<Color> &source,
     {
         for (size_t j = 2; j < width - 2; j++)
         {
-            apply_bilateral_filter(res, source, i, j, diameter);
+            apply_bilateral_filter(res, source, j, i, diameter);
         }
     }
 }

@@ -21,6 +21,29 @@ void set_pixel(unsigned char *raw_buffer, size_t offset, Color &col)
     raw_buffer[offset + 3] = col.a();
 }
 
+void to_rgb_matrix(unsigned char *raw_buffer, Matrix<Color> &output)
+{
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, screen_height * screen_width),
+        [&](tbb::blocked_range<size_t> r) {
+            for (size_t i = r.begin(); i < r.end(); i++)
+                output.get_data()[i] = get_pixel(raw_buffer, i * 4);
+        });
+}
+
+void fill_buffer(unsigned char *raw_buffer, Matrix<Color> &mat)
+{
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, screen_height * screen_width),
+        [&](tbb::blocked_range<size_t> r) {
+            for (size_t i = r.begin(); i < r.end(); i++)
+            {
+                Color value = mat.get_data()[i];
+                set_pixel(raw_buffer, i * 4, value);
+            }
+        });
+}
+
 void apply_palette(unsigned char *raw_buffer, Quantizer &q,
                    std::vector<Color> &palette)
 {

@@ -24,6 +24,11 @@ Color get_pixel(unsigned char *raw_buffer, size_t offset);
 void set_pixel(unsigned char *raw_buffer, size_t offset, Color &col);
 
 /*
+ * Make a Matrix out of buffer
+ */
+void to_rgb_matrix(unsigned char *raw_buffer, Matrix<Color> &output);
+
+/*
  * Get grayscale matrix from RGBA input buffer
  */
 template <typename T>
@@ -38,6 +43,7 @@ void remap_to_rgb(Matrix<T> &mat);
 /*
  * Fill buffer using matrix values (assumed to be in RGB range)
  */
+void fill_buffer(unsigned char *raw_buffer, Matrix<Color> &mat);
 template <typename T>
 void fill_buffer(unsigned char *raw_buffer, Matrix<T> &mat);
 
