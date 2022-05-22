@@ -217,14 +217,16 @@ int main(int argc, char *argv[])
                 }
                 if (saturation_boost)
                 {
-                    if (state[SDL_SCANCODE_UP])
+                    if (state[SDL_SCANCODE_UP] && !state[SDL_SCANCODE_H]
+                        && !state[SDL_SCANCODE_L])
                     {
                         saturation_value += 0.1;
                         std::cout
                             << "Set saturation boost to: " << saturation_value
                             << std::endl;
                     }
-                    else if (state[SDL_SCANCODE_DOWN])
+                    else if (state[SDL_SCANCODE_DOWN] && !state[SDL_SCANCODE_H]
+                             && !state[SDL_SCANCODE_L])
                     {
                         saturation_value -= 0.1;
                         std::cout
