@@ -20,11 +20,7 @@ struct RGB
 
     RGB normalized(size_t pixel_count)
     {
-        std::cout << "red: " << r << " green: " << g << " blue: " << b
-                  << " count: " << pixel_count << std::endl;
         RGB res(r / pixel_count, g / pixel_count, b / pixel_count);
-        std::cout << "red: " << res.r << " green: " << res.g
-                  << " blue: " << res.b << std::endl;
         return res;
     }
 

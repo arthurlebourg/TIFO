@@ -127,6 +127,11 @@ RGB Node::get_color()
     return c_.normalized(pixel_count_);
 }
 
+size_t Node::get_pixel_count()
+{
+    return pixel_count_;
+}
+
 void Node::set_palette_index(size_t index)
 {
     palette_index_ = index;
@@ -150,6 +155,7 @@ void Quantizer::add_color(RGB c)
 std::vector<RGB> Quantizer::make_palette(size_t color_amount)
 {
     std::vector<RGB> palette;
+    histogram_.clear();
     size_t palette_index = 0;
     size_t leaf_count = get_leaf_nodes().size();
     for (size_t level = MAX_DEPTH - 1; level < MAX_DEPTH; level--)
@@ -177,6 +183,10 @@ std::vector<RGB> Quantizer::make_palette(size_t color_amount)
         if (i->is_leaf())
         {
             palette.push_back(i->get_color());
+            RGB col = i->get_color();
+            std::pair<HSV, size_t> elm =
+                std::make_pair(to_hsv(col), i->get_pixel_count());
+            histogram_.push_back(elm);
         }
         i->set_palette_index(palette_index);
         palette_index++;
@@ -197,4 +207,23 @@ void Quantizer::add_level_node(size_t level, std::shared_ptr<Node> node)
 size_t Quantizer::get_palette_index(RGB c)
 {
     return root_->get_palette_index(c, 0);
+}
+
+std::vector<std::pair<HSV, size_t>> Quantizer::get_histogram()
+{
+    return histogram_;
+}
+
+std::vector<size_t> Quantizer::get_cumulative_histogram()
+{
+    std::vector<size_t> cum_histo(256, 0);
+    for (auto i : histogram_)
+    {
+        cum_histo[i.first.v * 256] += i.second;
+    }
+    for (size_t i = 1; i < 256; i++)
+    {
+        cum_histo[i] += cum_histo[i - 1];
+    }
+    return cum_histo;
 }

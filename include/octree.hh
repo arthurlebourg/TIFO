@@ -31,6 +31,8 @@ public:
 
     RGB get_color();
 
+    size_t get_pixel_count();
+
     void set_palette_index(size_t index);
 
 private:
@@ -55,7 +57,12 @@ public:
 
     size_t get_palette_index(RGB c);
 
+    std::vector<std::pair<HSV, size_t>> get_histogram();
+
+    std::vector<size_t> get_cumulative_histogram();
+
 private:
     std::vector<std::vector<std::shared_ptr<Node>>> levels_;
     std::shared_ptr<Node> root_;
+    std::vector<std::pair<HSV, size_t>> histogram_;
 };

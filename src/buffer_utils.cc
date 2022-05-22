@@ -52,6 +52,26 @@ void saturation_modification(unsigned char *raw_buffer,
         });
 }
 
+void contrast_correction(unsigned char *raw_buffer,
+                         std::vector<size_t> cum_histo)
+{
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, screen_height * screen_width),
+        [&](tbb::blocked_range<size_t> r) {
+            for (size_t i = r.begin(); i < r.end(); i++)
+            {
+                auto color = get_pixel(raw_buffer, i * 4);
+                auto hsv = to_hsv(color);
+
+                hsv.v *= 256 * cum_histo[hsv.v * 256]
+                    / (screen_height * screen_width);
+
+                auto new_color = to_rgb(hsv);
+                set_pixel(raw_buffer, i * 4, new_color);
+            }
+        });
+}
+
 void fill_buffer(unsigned char *raw_buffer, Matrix<RGB> &mat)
 {
     tbb::parallel_for(

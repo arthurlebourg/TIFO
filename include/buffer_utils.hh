@@ -41,6 +41,12 @@ void saturation_modification(unsigned char *raw_buffer,
                              const double saturation_factor);
 
 /*
+ * Does a constrast correction on HSV, assumes RGB buffer
+ */
+void contrast_correction(unsigned char *raw_buffer,
+                         std::vector<size_t> cum_histo);
+
+/*
  * Remap matrix values to RGB range (0-255)
  */
 template <typename T>
