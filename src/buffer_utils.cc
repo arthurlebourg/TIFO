@@ -63,8 +63,8 @@ void contrast_correction(unsigned char *raw_buffer,
                 auto color = get_pixel(raw_buffer, i * 4);
                 auto hsv = to_hsv(color);
 
-                hsv.v *= 256 * cum_histo[hsv.v * 256]
-                    / (screen_height * screen_width);
+                hsv.v *=
+                    cum_histo[hsv.v * 256] / (screen_height * screen_width);
 
                 auto new_color = to_rgb(hsv);
                 set_pixel(raw_buffer, i * 4, new_color);
