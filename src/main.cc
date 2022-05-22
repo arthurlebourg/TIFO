@@ -212,7 +212,7 @@ int main(int argc, char *argv[])
         if (color_quantization)
         {
             apply_palette(raw_buffer, q, palette);
-            boost_luminance(raw_buffer);
+            boost_saturation(raw_buffer);
             //  apply_palette_debug(raw_buffer, q, palette, screen_width /
             //  2);
         }

@@ -35,9 +35,9 @@ template <typename T>
 void to_grayscale(unsigned char *raw_buffer, Matrix<T> &output);
 
 /*
- * Converts to HSV, then boosts luminance, to converts back to RGB
+ * Converts to HSV, then boosts saturation, to converts back to RGB
  */
-void boost_luminance(unsigned char *raw_buffer);
+void boost_saturation(unsigned char *raw_buffer);
 
 /*
  * Remap matrix values to RGB range (0-255)

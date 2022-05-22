@@ -31,7 +31,7 @@ void to_rgb_matrix(unsigned char *raw_buffer, Matrix<Color> &output)
         });
 }
 
-void boost_luminance(unsigned char *raw_buffer)
+void boost_saturation(unsigned char *raw_buffer)
 {
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, screen_height * screen_width),
