@@ -226,48 +226,45 @@ void thicken_edges(Matrix<float> &edges_in, Matrix<float> &angle_in,
                         if (angle < 0)
                             angle += 180;
 
-                        for (size_t n = 1; n < 3; n++)
+                        // 0°
+                        if (angle < 22.5 || angle >= 157.5)
                         {
-                            // 0°
-                            if (angle < 22.5 || angle >= 157.5)
-                            {
-                                edges_out.safe_set(j - n, i, STRONG);
-                                edges_out.safe_set(j - n, i + n, STRONG);
-                                edges_out.safe_set(j - n, i - n, STRONG);
-                                edges_out.safe_set(j + n, i, STRONG);
-                                edges_out.safe_set(j + n, i + n, STRONG);
-                                edges_out.safe_set(j + n, i - n, STRONG);
-                            }
-                            // 45°
-                            else if (angle >= 22.5 && angle < 67.5)
-                            {
-                                edges_out.safe_set(j - n, i - n, STRONG);
-                                edges_out.safe_set(j + n, i + n, STRONG);
-                                edges_out.safe_set(j - n, i, STRONG);
-                                edges_out.safe_set(j + n, i, STRONG);
-                                edges_out.safe_set(j, i - n, STRONG);
-                                edges_out.safe_set(j, i + n, STRONG);
-                            }
-                            // 90°
-                            else if (angle >= 67.5 && angle < 112.5)
-                            {
-                                edges_out.safe_set(j, i - n, STRONG);
-                                edges_out.safe_set(j + n, i - n, STRONG);
-                                edges_out.safe_set(j - n, i - n, STRONG);
-                                edges_out.safe_set(j, i + n, STRONG);
-                                edges_out.safe_set(j + n, i + n, STRONG);
-                                edges_out.safe_set(j - n, i + n, STRONG);
-                            }
-                            // 135°
-                            else if (angle >= 112.5 && angle < 157.5)
-                            {
-                                edges_out.safe_set(j - n, i + n, STRONG);
-                                edges_out.safe_set(j + n, i - n, STRONG);
-                                edges_out.safe_set(j - n, i, STRONG);
-                                edges_out.safe_set(j + n, i, STRONG);
-                                edges_out.safe_set(j, i - n, STRONG);
-                                edges_out.safe_set(j, i + n, STRONG);
-                            }
+                            edges_out.safe_set(j - 1, i, STRONG);
+                            edges_out.safe_set(j - 1, i + 1, STRONG);
+                            edges_out.safe_set(j - 1, i - 1, STRONG);
+                            edges_out.safe_set(j + 1, i, STRONG);
+                            edges_out.safe_set(j + 1, i + 1, STRONG);
+                            edges_out.safe_set(j + 1, i - 1, STRONG);
+                        }
+                        // 45°
+                        else if (angle >= 22.5 && angle < 67.5)
+                        {
+                            edges_out.safe_set(j - 1, i - 1, STRONG);
+                            edges_out.safe_set(j + 1, i + 1, STRONG);
+                            edges_out.safe_set(j - 1, i, STRONG);
+                            edges_out.safe_set(j + 1, i, STRONG);
+                            edges_out.safe_set(j, i - 1, STRONG);
+                            edges_out.safe_set(j, i + 1, STRONG);
+                        }
+                        // 90°
+                        else if (angle >= 67.5 && angle < 112.5)
+                        {
+                            edges_out.safe_set(j, i - 1, STRONG);
+                            edges_out.safe_set(j + 1, i - 1, STRONG);
+                            edges_out.safe_set(j - 1, i - 1, STRONG);
+                            edges_out.safe_set(j, i + 1, STRONG);
+                            edges_out.safe_set(j + 1, i + 1, STRONG);
+                            edges_out.safe_set(j - 1, i + 1, STRONG);
+                        }
+                        // 135°
+                        else if (angle >= 112.5 && angle < 157.5)
+                        {
+                            edges_out.safe_set(j - 1, i + 1, STRONG);
+                            edges_out.safe_set(j + 1, i - 1, STRONG);
+                            edges_out.safe_set(j - 1, i, STRONG);
+                            edges_out.safe_set(j + 1, i, STRONG);
+                            edges_out.safe_set(j, i - 1, STRONG);
+                            edges_out.safe_set(j, i + 1, STRONG);
                         }
                     }
 
