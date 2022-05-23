@@ -15,6 +15,25 @@
 #include "kernels.hh"
 #include "octree.hh"
 
+void get_text_and_rect(SDL_Renderer *renderer, int x, int y, const char *text,
+                       TTF_Font *font, SDL_Texture **texture, SDL_Rect *rect)
+{
+    int text_width;
+    int text_height;
+    SDL_Surface *surface;
+    SDL_Color textColor = { 255, 255, 255, 0 };
+
+    surface = TTF_RenderText_Solid(font, text, textColor);
+    *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    text_width = surface->w;
+    text_height = surface->h;
+    SDL_FreeSurface(surface);
+    rect->x = x;
+    rect->y = y;
+    rect->w = text_width;
+    rect->h = text_height;
+}
+
 int main(int argc, char *argv[])
 {
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -46,6 +65,10 @@ int main(int argc, char *argv[])
 
     // Text
     TTF_Init();
+    SDL_Rect rect1, rect2, rect3, rect4, rect5, rect6, rect7, rect8, rect9,
+        rect10;
+    SDL_Texture *texture1, *texture2, *texture3, *texture4, *texture5,
+        *texture6, *texture7, *texture8, *texture9, *texture10;
     // this opens a font style and sets a size
     TTF_Font *Sans = TTF_OpenFont("FreeSans.ttf", 24);
     if (Sans == NULL)
@@ -54,44 +77,48 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    // this is the color in rgb format,
-    // maxing out all would give you the color white,
-    // and it will be your text's color
-    SDL_Color White = { 255, 255, 255, 255 };
+    get_text_and_rect(renderer, 0, 0, "Different keyboard shortcuts:", Sans,
+                      &texture1, &rect1);
+    get_text_and_rect(renderer, 0, rect1.y + rect1.h * 2,
+                      "E : Display contours", Sans, &texture2, &rect2);
+    get_text_and_rect(renderer, 0, rect2.y + rect2.h,
+                      "B : Apply border darkening", Sans, &texture3, &rect3);
+    get_text_and_rect(renderer, 0, rect3.y + rect3.h,
+                      "D : Apply border dilation/thickening", Sans, &texture4,
+                      &rect4);
+    get_text_and_rect(renderer, 0, rect4.y + rect4.h,
+                      "RIGHT and LEFT arrows to select blur function", Sans,
+                      &texture5, &rect5);
+    get_text_and_rect(renderer, 0, rect5.y + rect5.h,
+                      "L / H + UP / DOWN to update low/high thresholds", Sans,
+                      &texture6, &rect6);
 
-    // as TTF_RenderText_Solid could only be used on
-    // SDL_Surface then you have to create the surface first
-    SDL_Surface *surfaceMessage =
-        TTF_RenderText_Solid(Sans, "Keyboard Shortcuts:", White);
+    get_text_and_rect(renderer, 0, rect6.y + rect6.h * 2,
+                      "P : compute color palette", Sans, &texture7, &rect7);
+    get_text_and_rect(renderer, 0, rect7.y + rect7.h, "apply color palette",
+                      Sans, &texture8, &rect8);
+    get_text_and_rect(renderer, 0, rect8.y + rect8.h,
+                      "UP / DOWN arrows to update the saturation value", Sans,
+                      &texture9, &rect9);
+    get_text_and_rect(renderer, 0, rect9.y + rect9.h * 2,
+                      "N to activate pixel filter", Sans, &texture10, &rect10);
 
-    // now you can convert it into a texture
-    SDL_Texture *Message =
-        SDL_CreateTextureFromSurface(renderer, surfaceMessage);
-
-    SDL_Rect Message_rect; // create a rect
-    Message_rect.x = 0; // controls the rect's x coordinate
-    Message_rect.y = 0; // controls the rect's y coordinte
-    Message_rect.w = 500; // controls the width of the rect
-    Message_rect.h = 100; // controls the height of the rect
-
-    // (0,0) is on the top left of the window/screen,
-    // think a rect as the text's box,
-    // that way it would be very simple to understand
-
-    // Now since it's a texture, you have to put RenderCopy
-    // in your game loop area, the area where the whole code executes
-
-    // you put the renderer's name first, the Message,
-    // the crop size (you can ignore this if you don't want
-    // to dabble with cropping), and the rect which is the size
-    // and coordinate of your texture
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
+    SDL_RenderCopy(renderer, texture1, NULL, &rect1);
+    SDL_RenderCopy(renderer, texture2, NULL, &rect2);
+    SDL_RenderCopy(renderer, texture3, NULL, &rect3);
+    SDL_RenderCopy(renderer, texture4, NULL, &rect4);
+    SDL_RenderCopy(renderer, texture5, NULL, &rect5);
+    SDL_RenderCopy(renderer, texture6, NULL, &rect6);
+    SDL_RenderCopy(renderer, texture7, NULL, &rect7);
+    SDL_RenderCopy(renderer, texture8, NULL, &rect8);
+    SDL_RenderCopy(renderer, texture9, NULL, &rect9);
+    SDL_RenderCopy(renderer, texture10, NULL, &rect10);
     SDL_RenderPresent(renderer);
 
     std::cout << "wait" << std::endl;
-    SDL_Delay(3000);
+    // SDL_Delay(3000);
     std::cout << "go" << std::endl;
 
     bool running = true;
@@ -395,10 +422,21 @@ int main(int argc, char *argv[])
 
         // SDL again
         SDL_UpdateTexture(texture, NULL, raw_buffer, screen_width * 4);
+        SDL_RenderCopy(renderer, texture, NULL, NULL);
         if (render_shortcuts)
-            SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
-        else
+        {
             SDL_RenderCopy(renderer, texture, NULL, NULL);
+            SDL_RenderCopy(renderer, texture1, NULL, &rect1);
+            SDL_RenderCopy(renderer, texture2, NULL, &rect2);
+            SDL_RenderCopy(renderer, texture3, NULL, &rect3);
+            SDL_RenderCopy(renderer, texture4, NULL, &rect4);
+            SDL_RenderCopy(renderer, texture5, NULL, &rect5);
+            SDL_RenderCopy(renderer, texture6, NULL, &rect6);
+            SDL_RenderCopy(renderer, texture7, NULL, &rect7);
+            SDL_RenderCopy(renderer, texture8, NULL, &rect8);
+            SDL_RenderCopy(renderer, texture9, NULL, &rect9);
+            SDL_RenderCopy(renderer, texture10, NULL, &rect10);
+        }
         SDL_RenderPresent(renderer);
 
         frames++;
