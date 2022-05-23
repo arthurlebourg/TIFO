@@ -117,9 +117,7 @@ int main(int argc, char *argv[])
     SDL_RenderCopy(renderer, texture10, NULL, &rect10);
     SDL_RenderPresent(renderer);
 
-    std::cout << "wait" << std::endl;
     // SDL_Delay(3000);
-    std::cout << "go" << std::endl;
 
     bool running = true;
 
