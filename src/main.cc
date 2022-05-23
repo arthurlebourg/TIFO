@@ -351,6 +351,13 @@ int main(int argc, char *argv[])
             // Compute edges BEFORE color pre-processing
             if (dark_borders)
             {
+                if (contrast_cor) // From raw buffer
+                {
+                    auto c_histo =
+                        compute_lightness_cumul_histogram(raw_buffer);
+                    contrast_correction(raw_buffer, c_histo);
+                }
+
                 to_grayscale(raw_buffer, canny_buffers[0]);
                 edge_detection(canny_buffers, blur, low_threshold_ratio,
                                high_threshold_ratio);
