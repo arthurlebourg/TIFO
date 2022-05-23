@@ -63,9 +63,13 @@ void remap_to_rgb(Matrix<T> &mat);
 /*
  * Fill buffer using matrix values (assumed to be in RGB range)
  */
-void fill_buffer(unsigned char *raw_buffer, Matrix<RGB> &mat);
 template <typename T>
 void fill_buffer(unsigned char *raw_buffer, Matrix<T> &mat);
+
+/*
+ * Fill buffer using matrix RGB values
+ */
+void fill_buffer(unsigned char *raw_buffer, Matrix<RGB> &mat);
 
 /*
  * Apply new color palette

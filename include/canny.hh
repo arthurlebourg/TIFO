@@ -16,6 +16,7 @@ enum class Blur
     NONE,
     GAUSS,
     MEDIAN,
+    BILATERAL,
     __LAST_BLUR,
 };
 
@@ -43,10 +44,11 @@ inline std::ostream &operator<<(std::ostream &out, Blur blur)
         return out << "GAUSS";
     case Blur::MEDIAN:
         return out << "MEDIAN";
+    case Blur::BILATERAL:
+        return out << "BILATERAL";
     default:
-        break;
+        return out << "UNKNOWN";
     }
-    return out;
 }
 
 void edge_detection(std::vector<Matrix<float>> &buffers, Blur blur,

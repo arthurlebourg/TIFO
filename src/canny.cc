@@ -189,6 +189,10 @@ void edge_detection(std::vector<Matrix<float>> &buffers, Blur blur,
         median_filter(buffers[0], buffers[1], 5);
         buffers[1].swap(buffers[0]);
         break;
+    case Blur::BILATERAL:
+        bilateral_filter(buffers[0], buffers[1], 4, 12, 16);
+        buffers[1].swap(buffers[0]);
+        break;
     default:
         break;
     }
