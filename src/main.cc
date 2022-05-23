@@ -8,8 +8,6 @@
 #include <SDL2/SDL_ttf.h>
 #include <thread>
 #include <vector>
-using namespace std::this_thread; // sleep_for, sleep_until
-using namespace std::chrono; // nanoseconds, system_clock, seconds
 
 #include "buffer_utils.hh"
 #include "canny.hh"
@@ -64,7 +62,7 @@ int main(int argc, char *argv[])
     // as TTF_RenderText_Solid could only be used on
     // SDL_Surface then you have to create the surface first
     SDL_Surface *surfaceMessage =
-        TTF_RenderText_Solid(Sans, "put your text here", White);
+        TTF_RenderText_Solid(Sans, "Keyboard Shortcuts:", White);
 
     // now you can convert it into a texture
     SDL_Texture *Message =
@@ -73,7 +71,7 @@ int main(int argc, char *argv[])
     SDL_Rect Message_rect; // create a rect
     Message_rect.x = 0; // controls the rect's x coordinate
     Message_rect.y = 0; // controls the rect's y coordinte
-    Message_rect.w = 100; // controls the width of the rect
+    Message_rect.w = 500; // controls the width of the rect
     Message_rect.h = 100; // controls the height of the rect
 
     // (0,0) is on the top left of the window/screen,
@@ -93,7 +91,7 @@ int main(int argc, char *argv[])
     SDL_RenderPresent(renderer);
 
     std::cout << "wait" << std::endl;
-    SDL_Delay(5000);
+    SDL_Delay(3000);
     std::cout << "go" << std::endl;
 
     bool running = true;
@@ -149,6 +147,8 @@ int main(int argc, char *argv[])
     bool saturation_boost = true;
     bool contrast_cor = false;
 
+    bool render_shortcuts = false;
+
     Blur blur = Blur::GAUSS;
     float low_threshold_ratio = 0.030;
     float high_threshold_ratio = 0.150;
@@ -181,6 +181,13 @@ int main(int argc, char *argv[])
             if (SDL_KEYDOWN == event.type)
             {
                 auto state = SDL_GetKeyboardState(NULL);
+                if (state[SDL_SCANCODE_SPACE])
+                {
+                    render_shortcuts = !render_shortcuts;
+                    std::cout << "Show shortcuts: "
+                              << (render_shortcuts ? "enabled" : "disabled")
+                              << std::endl;
+                }
                 if (state[SDL_SCANCODE_C])
                 {
                     color_quantization = palette_init && !color_quantization;
@@ -384,7 +391,10 @@ int main(int argc, char *argv[])
 
         // SDL again
         SDL_UpdateTexture(texture, NULL, raw_buffer, screen_width * 4);
-        SDL_RenderCopy(renderer, texture, NULL, NULL);
+        if (render_shortcuts)
+            SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
+        else
+            SDL_RenderCopy(renderer, texture, NULL, NULL);
         SDL_RenderPresent(renderer);
 
         frames++;
