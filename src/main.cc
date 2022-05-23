@@ -5,8 +5,11 @@
 #include <iostream>
 #include <set>
 // #include <tbb/tbb.h> // To disable multi-threading
+#include <SDL2/SDL_ttf.h>
 #include <thread>
 #include <vector>
+using namespace std::this_thread; // sleep_for, sleep_until
+using namespace std::chrono; // nanoseconds, system_clock, seconds
 
 #include "buffer_utils.hh"
 #include "canny.hh"
@@ -42,6 +45,57 @@ int main(int argc, char *argv[])
                                              screen_width, screen_height);
 
     SDL_Event event;
+
+    // Text
+    TTF_Init();
+    // this opens a font style and sets a size
+    TTF_Font *Sans = TTF_OpenFont("FreeSans.ttf", 24);
+    if (Sans == NULL)
+    {
+        fprintf(stderr, "error: font not found\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // this is the color in rgb format,
+    // maxing out all would give you the color white,
+    // and it will be your text's color
+    SDL_Color White = { 255, 255, 255, 255 };
+
+    // as TTF_RenderText_Solid could only be used on
+    // SDL_Surface then you have to create the surface first
+    SDL_Surface *surfaceMessage =
+        TTF_RenderText_Solid(Sans, "put your text here", White);
+
+    // now you can convert it into a texture
+    SDL_Texture *Message =
+        SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+
+    SDL_Rect Message_rect; // create a rect
+    Message_rect.x = 0; // controls the rect's x coordinate
+    Message_rect.y = 0; // controls the rect's y coordinte
+    Message_rect.w = 100; // controls the width of the rect
+    Message_rect.h = 100; // controls the height of the rect
+
+    // (0,0) is on the top left of the window/screen,
+    // think a rect as the text's box,
+    // that way it would be very simple to understand
+
+    // Now since it's a texture, you have to put RenderCopy
+    // in your game loop area, the area where the whole code executes
+
+    // you put the renderer's name first, the Message,
+    // the crop size (you can ignore this if you don't want
+    // to dabble with cropping), and the rect which is the size
+    // and coordinate of your texture
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
+    SDL_RenderPresent(renderer);
+
+    std::cout << "wait" << std::endl;
+    SDL_Delay(5000);
+    std::cout << "go" << std::endl;
+
     bool running = true;
 
     unsigned int frames = 0;
