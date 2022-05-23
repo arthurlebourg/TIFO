@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
     Quantizer q;
     std::vector<RGB> palette;
     tbb::concurrent_vector<size_t> palette_lightness_cumul_histo;
-    int palette_number = 40;
+    int palette_number = 100;
 
     int count;
     bool color_quantization = false;
