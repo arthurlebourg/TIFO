@@ -1,5 +1,6 @@
 #include "buffer_utils.hh"
 
+#include <atomic>
 #include <tbb/parallel_for.h>
 
 size_t get_offset(size_t x, size_t y)
@@ -52,10 +53,9 @@ void saturation_modification(unsigned char *raw_buffer,
         });
 }
 
-tbb::concurrent_vector<size_t>
-compute_lightness_cumul_histogram(unsigned char *raw_buffer)
+std::vector<size_t> compute_lightness_cumul_histogram(unsigned char *raw_buffer)
 {
-    tbb::concurrent_vector<size_t> histo(256, 0u);
+    tbb::concurrent_vector<std::atomic<size_t>> histo(256);
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, screen_height * screen_width),
         [&](tbb::blocked_range<size_t> r) {
@@ -63,17 +63,19 @@ compute_lightness_cumul_histogram(unsigned char *raw_buffer)
             {
                 auto color = get_pixel(raw_buffer, i * 4);
                 auto hsv = to_hsv(color);
-                histo[hsv.v * 255]++;
+                histo[hsv.v * 255].fetch_add(1, std::memory_order_relaxed);
             }
         });
 
+    std::vector<size_t> res(256);
+    res[0] = histo[0];
     for (size_t i = 1; i < 256; i++)
-        histo[i] += histo[i - 1];
-    return histo;
+        res[i] = histo[i] + res[i - 1];
+    return res;
 }
 
 void contrast_correction(unsigned char *raw_buffer,
-                         tbb::concurrent_vector<size_t> &cum_histo)
+                         std::vector<size_t> &cum_histo)
 {
     auto cdf_min = cum_histo[0];
     for (size_t i = 0; i < cum_histo.size(); i++)

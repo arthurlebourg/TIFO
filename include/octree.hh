@@ -3,7 +3,6 @@
 #include <climits>
 #include <iostream>
 #include <memory>
-#include <tbb/concurrent_vector.h>
 #include <vector>
 
 #include "color.hh"
@@ -60,7 +59,7 @@ public:
 
     std::vector<std::pair<HSV, size_t>> get_histogram();
 
-    tbb::concurrent_vector<size_t> get_lightness_cumulative_histogram();
+    std::vector<size_t> get_lightness_cumulative_histogram();
 
 private:
     std::vector<std::vector<std::shared_ptr<Node>>> levels_;
