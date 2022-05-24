@@ -15,25 +15,6 @@
 #include "kernels.hh"
 #include "octree.hh"
 
-void get_text_and_rect(SDL_Renderer *renderer, int x, int y, const char *text,
-                       TTF_Font *font, SDL_Texture **texture, SDL_Rect *rect)
-{
-    int text_width;
-    int text_height;
-    SDL_Surface *surface;
-    SDL_Color textColor = { 255, 255, 255, 0 };
-
-    surface = TTF_RenderText_Solid(font, text, textColor);
-    *texture = SDL_CreateTextureFromSurface(renderer, surface);
-    text_width = surface->w;
-    text_height = surface->h;
-    SDL_FreeSurface(surface);
-    rect->x = x;
-    rect->y = y;
-    rect->w = text_width;
-    rect->h = text_height;
-}
-
 int main(int argc, char *argv[])
 {
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -65,11 +46,6 @@ int main(int argc, char *argv[])
 
     // Text
     TTF_Init();
-    SDL_Rect rect1, rect2, rect3, rect4, rect5, rect6, rect7, rect8, rect9,
-        rect10;
-    SDL_Texture *texture1, *texture2, *texture3, *texture4, *texture5,
-        *texture6, *texture7, *texture8, *texture9, *texture10;
-    // this opens a font style and sets a size
     TTF_Font *Sans = TTF_OpenFont("FreeSans.ttf", 24);
     if (Sans == NULL)
     {
@@ -77,45 +53,25 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    get_text_and_rect(renderer, 0, 0, "Different keyboard shortcuts:", Sans,
-                      &texture1, &rect1);
-    get_text_and_rect(renderer, 0, rect1.y + rect1.h * 2,
-                      "E : Display contours", Sans, &texture2, &rect2);
-    get_text_and_rect(renderer, 0, rect2.y + rect2.h,
-                      "B : Apply border darkening", Sans, &texture3, &rect3);
-    get_text_and_rect(renderer, 0, rect3.y + rect3.h,
-                      "D : Apply border dilation/thickening", Sans, &texture4,
-                      &rect4);
-    get_text_and_rect(renderer, 0, rect4.y + rect4.h,
-                      "RIGHT and LEFT arrows to select blur function", Sans,
-                      &texture5, &rect5);
-    get_text_and_rect(renderer, 0, rect5.y + rect5.h,
-                      "L / H + UP / DOWN to update low/high thresholds", Sans,
-                      &texture6, &rect6);
+    const char *shortcut_text =
+        "Different keyboard shortcuts:\n"
+        "\n"
+        "E : Display contours\n"
+        "B : Apply border darkening\n"
+        "D : Apply border dilation/thickening\n"
+        "RIGHT and LEFT arrows to select blur function\n"
+        "L / H + UP / DOWN to update low/high thresholds\n"
+        "\n"
+        "P : compute color palette\n"
+        "UP / DOWN arrows to update the saturation value\n"
+        "N to activate pixel filter\n";
 
-    get_text_and_rect(renderer, 0, rect6.y + rect6.h * 2,
-                      "P : compute color palette", Sans, &texture7, &rect7);
-    get_text_and_rect(renderer, 0, rect7.y + rect7.h, "apply color palette",
-                      Sans, &texture8, &rect8);
-    get_text_and_rect(renderer, 0, rect8.y + rect8.h,
-                      "UP / DOWN arrows to update the saturation value", Sans,
-                      &texture9, &rect9);
-    get_text_and_rect(renderer, 0, rect9.y + rect9.h * 2,
-                      "N to activate pixel filter", Sans, &texture10, &rect10);
-
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-    SDL_RenderClear(renderer);
-    SDL_RenderCopy(renderer, texture1, NULL, &rect1);
-    SDL_RenderCopy(renderer, texture2, NULL, &rect2);
-    SDL_RenderCopy(renderer, texture3, NULL, &rect3);
-    SDL_RenderCopy(renderer, texture4, NULL, &rect4);
-    SDL_RenderCopy(renderer, texture5, NULL, &rect5);
-    SDL_RenderCopy(renderer, texture6, NULL, &rect6);
-    SDL_RenderCopy(renderer, texture7, NULL, &rect7);
-    SDL_RenderCopy(renderer, texture8, NULL, &rect8);
-    SDL_RenderCopy(renderer, texture9, NULL, &rect9);
-    SDL_RenderCopy(renderer, texture10, NULL, &rect10);
-    SDL_RenderPresent(renderer);
+    SDL_Surface *shortcut_surface = TTF_RenderText_Blended_Wrapped(
+        Sans, shortcut_text, { 255, 255, 255, 255 }, screen_width);
+    SDL_Rect shortcut_rect{ 10, 10, shortcut_surface->w, shortcut_surface->h };
+    SDL_Texture *shortcut_texture =
+        SDL_CreateTextureFromSurface(renderer, shortcut_surface);
+    SDL_FreeSurface(shortcut_surface);
 
     // SDL_Delay(3000);
 
@@ -460,19 +416,7 @@ int main(int argc, char *argv[])
         SDL_UpdateTexture(texture, NULL, raw_buffer, screen_width * 4);
         SDL_RenderCopy(renderer, texture, NULL, NULL);
         if (render_shortcuts)
-        {
-            SDL_RenderCopy(renderer, texture, NULL, NULL);
-            SDL_RenderCopy(renderer, texture1, NULL, &rect1);
-            SDL_RenderCopy(renderer, texture2, NULL, &rect2);
-            SDL_RenderCopy(renderer, texture3, NULL, &rect3);
-            SDL_RenderCopy(renderer, texture4, NULL, &rect4);
-            SDL_RenderCopy(renderer, texture5, NULL, &rect5);
-            SDL_RenderCopy(renderer, texture6, NULL, &rect6);
-            SDL_RenderCopy(renderer, texture7, NULL, &rect7);
-            SDL_RenderCopy(renderer, texture8, NULL, &rect8);
-            SDL_RenderCopy(renderer, texture9, NULL, &rect9);
-            SDL_RenderCopy(renderer, texture10, NULL, &rect10);
-        }
+            SDL_RenderCopy(renderer, shortcut_texture, NULL, &shortcut_rect);
         SDL_RenderPresent(renderer);
 
         frames++;
