@@ -54,15 +54,17 @@ int main(int argc, char *argv[])
     }
 
     const char *shortcut_text =
-        "E : Display contours\n"
-        "B : Apply border darkening\n"
-        "D : Apply border dilation/thickening\n"
+        "E : display contours\n"
+        "B : apply border darkening\n"
+        "D : apply border dilation/thickening\n"
+        "R : edge contrast correction\n"
         "RIGHT and LEFT arrows : select blur function\n"
         "L / H + UP / DOWN : update low/high Canny thresholds\n"
         "\n"
         "P : compute color palette\n"
         "C : color quantizatin\n"
-        "S : olor saturation boost\n"
+        "S : color saturation boost\n"
+        "X : color contrast correction\n"
         "UP / DOWN arrows : update saturation value\n"
         "\n"
         "F : freeze frame\n"
@@ -105,6 +107,8 @@ int main(int argc, char *argv[])
 
     unsigned char *raw_buffer = (unsigned char *)calloc(
         screen_width * screen_height * 4, sizeof(unsigned char));
+    unsigned char *tmp_buffer = (unsigned char *)calloc(
+        screen_width * screen_height * 4, sizeof(unsigned char));
     unsigned char *saved_frame_buffer = (unsigned char *)calloc(
         screen_width * screen_height * 4, sizeof(unsigned char));
 
@@ -121,16 +125,20 @@ int main(int argc, char *argv[])
     int palette_number = 100;
 
     int count;
-    bool color_quantization = false;
-    bool palette_init = false;
-    bool generate_palette = false;
+
+    bool edges_only = false;
     bool dark_borders = false;
     bool border_dilation = true;
-    bool edges_only = false;
+    bool edge_contrast_correction = false;
+
+    bool palette_init = false;
+    bool generate_palette = false;
+    bool color_quantization = false;
+    bool color_contrast_correction = false;
+
     bool pixelate = false;
 
     bool saturation_boost = true;
-    bool contrast_cor = false;
 
     bool freeze_frame = false;
     bool frame_saved = false;
@@ -202,16 +210,16 @@ int main(int argc, char *argv[])
                               << (freeze_frame ? "enabled" : "disabled")
                               << std::endl;
                 }
+                if (state[SDL_SCANCODE_P])
+                {
+                    generate_palette = !generate_palette;
+                }
                 if (state[SDL_SCANCODE_C])
                 {
                     color_quantization = palette_init && !color_quantization;
                     std::cout << "Color quantization: "
                               << (color_quantization ? "enabled" : "disabled")
                               << std::endl;
-                }
-                if (state[SDL_SCANCODE_P])
-                {
-                    generate_palette = !generate_palette;
                 }
                 if (state[SDL_SCANCODE_B])
                 {
@@ -230,23 +238,17 @@ int main(int argc, char *argv[])
                 {
                     pixelate = !pixelate;
                 }
-                if (state[SDL_SCANCODE_X])
-                {
-                    // contrast_cor = color_quantization && !contrast_cor;
-                    contrast_cor = !contrast_cor;
-                    std::cout << "Contrast correction: "
-                              << (contrast_cor ? "enabled" : "disabled")
-                              << std::endl;
-                }
-                if (state[SDL_SCANCODE_S])
-                {
-                    saturation_boost = color_quantization && !saturation_boost;
-                    std::cout << "Saturation boost: "
-                              << (saturation_boost ? "enabled" : "disabled")
-                              << std::endl;
-                }
+
                 if (dark_borders || edges_only)
                 {
+                    if (state[SDL_SCANCODE_R])
+                    {
+                        edge_contrast_correction = !edge_contrast_correction;
+                        std::cout << "Edge contrast correction: "
+                                  << (edge_contrast_correction ? "enabled"
+                                                               : "disabled")
+                                  << std::endl;
+                    }
                     if (state[SDL_SCANCODE_D])
                     {
                         border_dilation = !border_dilation;
@@ -290,23 +292,41 @@ int main(int argc, char *argv[])
                                   << high_threshold_ratio << std::endl;
                     }
                 }
-                if (saturation_boost)
+                if (color_quantization)
                 {
-                    if (state[SDL_SCANCODE_UP] && !state[SDL_SCANCODE_H]
-                        && !state[SDL_SCANCODE_L])
+                    if (state[SDL_SCANCODE_X])
                     {
-                        saturation_value += 0.1;
-                        std::cout
-                            << "Set saturation boost to: " << saturation_value
-                            << std::endl;
+                        color_contrast_correction = !color_contrast_correction;
+                        std::cout << "Color contrast correction: "
+                                  << (color_contrast_correction ? "enabled"
+                                                                : "disabled")
+                                  << std::endl;
                     }
-                    else if (state[SDL_SCANCODE_DOWN] && !state[SDL_SCANCODE_H]
-                             && !state[SDL_SCANCODE_L])
+                    if (state[SDL_SCANCODE_S])
                     {
-                        saturation_value -= 0.1;
-                        std::cout
-                            << "Set saturation boost to: " << saturation_value
-                            << std::endl;
+                        saturation_boost =
+                            color_quantization && !saturation_boost;
+                        std::cout << "Color saturation boost: "
+                                  << (saturation_boost ? "enabled" : "disabled")
+                                  << std::endl;
+                    }
+                    if (saturation_boost)
+                    {
+                        if (state[SDL_SCANCODE_UP] && !state[SDL_SCANCODE_H]
+                            && !state[SDL_SCANCODE_L])
+                        {
+                            saturation_value += 0.1;
+                            std::cout << "Set saturation boost to: "
+                                      << saturation_value << std::endl;
+                        }
+                        else if (state[SDL_SCANCODE_DOWN]
+                                 && !state[SDL_SCANCODE_H]
+                                 && !state[SDL_SCANCODE_L])
+                        {
+                            saturation_value -= 0.1;
+                            std::cout << "Set saturation boost to: "
+                                      << saturation_value << std::endl;
+                        }
                     }
                 }
             }
@@ -336,16 +356,18 @@ int main(int argc, char *argv[])
 
         // Preprocess
 
+        if (edge_contrast_correction) // From raw buffer
+        {
+            memcpy(tmp_buffer, raw_buffer, screen_height * screen_width * 4);
+            auto c_histo = compute_lightness_cumul_histogram(tmp_buffer);
+            contrast_correction(tmp_buffer, c_histo);
+        }
+
         // Compute edges BEFORE color pre-processing
         if (dark_borders)
         {
-            if (contrast_cor) // From raw buffer
-            {
-                auto c_histo = compute_lightness_cumul_histogram(raw_buffer);
-                contrast_correction(raw_buffer, c_histo);
-            }
-
-            to_grayscale(raw_buffer, canny_buffers[0]);
+            to_grayscale(edge_contrast_correction ? tmp_buffer : raw_buffer,
+                         canny_buffers[0]);
             edge_detection(canny_buffers, blur, low_threshold_ratio,
                            high_threshold_ratio);
 
@@ -358,7 +380,8 @@ int main(int argc, char *argv[])
         }
         else if (edges_only)
         {
-            to_grayscale(raw_buffer, canny_buffers[0]);
+            to_grayscale(edge_contrast_correction ? tmp_buffer : raw_buffer,
+                         canny_buffers[0]);
             edge_detection(canny_buffers, blur, low_threshold_ratio,
                            high_threshold_ratio);
             // remap_to_rgb(canny_edge_buffers[0]);
@@ -372,16 +395,9 @@ int main(int argc, char *argv[])
 
         if (color_quantization)
         {
-            // if (contrast_cor) // From raw buffer
-            // {
-            //     auto c_histo =
-            //     compute_lightness_cumul_histogram(raw_buffer);
-            //     contrast_correction(raw_buffer, c_histo);
-            // }
-
             apply_palette(raw_buffer, q, palette);
 
-            if (contrast_cor) // From palette
+            if (color_contrast_correction) // From palette
             {
                 contrast_correction(raw_buffer, palette_lightness_cumul_histo);
             }
@@ -438,6 +454,7 @@ int main(int argc, char *argv[])
     fflush(pipein);
     pclose(pipein);
     free(raw_buffer);
+    free(tmp_buffer);
     free(saved_frame_buffer);
 
     SDL_DestroyRenderer(renderer);
