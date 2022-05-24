@@ -147,6 +147,8 @@ int main(int argc, char *argv[])
 
     unsigned char *raw_buffer = (unsigned char *)calloc(
         screen_width * screen_height * 4, sizeof(unsigned char));
+    unsigned char *saved_frame_buffer = (unsigned char *)calloc(
+        screen_width * screen_height * 4, sizeof(unsigned char));
 
     std::vector<Matrix<float>> canny_buffers(
         3, Matrix<float>(screen_height, screen_width, 0));
@@ -172,6 +174,8 @@ int main(int argc, char *argv[])
     bool saturation_boost = true;
     bool contrast_cor = false;
 
+    bool freeze_frame = false;
+    bool frame_saved = false;
     bool render_shortcuts = false;
 
     Blur blur = Blur::GAUSS;
@@ -187,11 +191,30 @@ int main(int argc, char *argv[])
         SDL_RenderClear(renderer);
 
         // Read a frame from the input pipe into the buffer
-        count = fread(raw_buffer, 1, screen_width * screen_height * 4, pipein);
+        if (!freeze_frame)
+        {
+            count =
+                fread(raw_buffer, 1, screen_width * screen_height * 4, pipein);
 
-        // If we didn't get a frame of video, we're probably at the end
-        if (count != screen_width * screen_height * 4)
-            break;
+            // If we didn't get a frame of video, we're probably at the end
+            if (count != screen_width * screen_height * 4)
+                break;
+        }
+        else
+        {
+            if (!frame_saved)
+            {
+                count = fread(saved_frame_buffer, 1,
+                              screen_width * screen_height * 4, pipein);
+
+                // If we didn't get a frame of video, we're probably at the end
+                if (count != screen_width * screen_height * 4)
+                    break;
+                frame_saved = true;
+            }
+            memcpy(raw_buffer, saved_frame_buffer,
+                   screen_width * screen_height * 4);
+        }
 
         while (SDL_PollEvent(&event))
         {
@@ -211,6 +234,14 @@ int main(int argc, char *argv[])
                     render_shortcuts = !render_shortcuts;
                     std::cout << "Show shortcuts: "
                               << (render_shortcuts ? "enabled" : "disabled")
+                              << std::endl;
+                }
+                if (state[SDL_SCANCODE_F])
+                {
+                    freeze_frame = !freeze_frame;
+                    frame_saved = false;
+                    std::cout << "Freeze frame: "
+                              << (freeze_frame ? "enabled" : "disabled")
                               << std::endl;
                 }
                 if (state[SDL_SCANCODE_C])
@@ -465,6 +496,7 @@ int main(int argc, char *argv[])
     fflush(pipein);
     pclose(pipein);
     free(raw_buffer);
+    free(saved_frame_buffer);
 
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
