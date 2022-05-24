@@ -15,6 +15,8 @@
 #include "kernels.hh"
 #include "octree.hh"
 
+#define OUTLINE_SIZE 3
+
 int main(int argc, char *argv[])
 {
     SDL_Init(SDL_INIT_EVERYTHING);
@@ -46,14 +48,19 @@ int main(int argc, char *argv[])
 
     // Text
     TTF_Init();
-    TTF_Font *Sans = TTF_OpenFont("FreeSans.ttf", 24);
-    if (Sans == NULL)
+    TTF_Font *font = TTF_OpenFont("FreeSans.ttf", 24);
+    TTF_Font *font_outline = TTF_OpenFont("FreeSans.ttf", 24);
+    TTF_SetFontOutline(font_outline, OUTLINE_SIZE);
+    if (font == NULL || font_outline == NULL)
     {
         fprintf(stderr, "error: font not found\n");
         exit(EXIT_FAILURE);
     }
 
     const char *shortcut_text =
+        "H : display shortcuts\n"
+        "SPACE : freeze frame\n"
+        "\n"
         "E : display contours\n"
         "B : apply border darkening\n"
         "D : apply border dilation/thickening\n"
@@ -67,17 +74,29 @@ int main(int argc, char *argv[])
         "X : color contrast correction\n"
         "UP / DOWN arrows : update saturation value\n"
         "\n"
-        "N : pixel filter\n"
-        "\n"
-        "SPACE : freeze frame\n"
-        "H : display shortcuts\n";
+        "N : pixel filter\n";
 
-    SDL_Surface *shortcut_surface = TTF_RenderText_Blended_Wrapped(
-        Sans, shortcut_text, { 255, 255, 255, 255 }, screen_width);
-    SDL_Rect shortcut_rect{ 10, 10, shortcut_surface->w, shortcut_surface->h };
+    SDL_Color text_color{ 255, 255, 255, 255 };
+    SDL_Color outline_color{ 0, 0, 0, 255 };
+
+    SDL_Surface *shortcut_text_surface = TTF_RenderText_Blended_Wrapped(
+        font, shortcut_text, text_color, screen_width);
+    SDL_Surface *shortcut_outline_surface = TTF_RenderText_Blended_Wrapped(
+        font_outline, shortcut_text, outline_color, screen_width);
+    SDL_Rect shortcut_rect{ OUTLINE_SIZE, OUTLINE_SIZE,
+                            shortcut_outline_surface->w,
+                            shortcut_outline_surface->h };
+
+    SDL_SetSurfaceBlendMode(shortcut_text_surface, SDL_BLENDMODE_BLEND);
+    // Blit text surface onto outline surface
+    SDL_BlitSurface(shortcut_text_surface, NULL, shortcut_outline_surface,
+                    &shortcut_rect);
+
     SDL_Texture *shortcut_texture =
-        SDL_CreateTextureFromSurface(renderer, shortcut_surface);
-    SDL_FreeSurface(shortcut_surface);
+        SDL_CreateTextureFromSurface(renderer, shortcut_outline_surface);
+
+    SDL_FreeSurface(shortcut_text_surface);
+    SDL_FreeSurface(shortcut_outline_surface);
 
     // SDL_Delay(3000);
 
