@@ -372,6 +372,23 @@ void Matrix<T>::pad_borders(size_t padding)
                       get_value(i, mRows - 1 - padding - p));
         }
     }
+
+    auto top_left = get_value(padding, padding);
+    auto top_right = get_value(mCols - 1 - padding, padding);
+    auto bottom_left = get_value(padding, mRows - 1 - padding);
+    auto bottom_right = get_value(mCols - 1 - padding, mRows - 1 - padding);
+
+    for (size_t i = 0; i < padding; i++)
+    {
+        for (size_t j = 0; j < padding; j++)
+        {
+            set_value(j, i, top_left);
+            set_value(mCols - 1 - padding + j, i, top_right);
+            set_value(j, mRows - 1 - padding + i, bottom_left);
+            set_value(mCols - 1 - padding + j, mRows - 1 - padding + i,
+                      bottom_right);
+        }
+    }
 }
 
 template <typename T>
