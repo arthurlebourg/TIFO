@@ -5,7 +5,8 @@
 
 extern float cGaussian[64];
 
-void gaussian_blur(Matrix<float> &input_output, Matrix<float> &tmp_buffer);
+void gaussian_blur(Matrix<float> &input_output, Matrix<float> &tmp_buffer,
+                   size_t padding);
 
 template <typename T>
 void median_filter(Matrix<T> &mat, size_t window_size);

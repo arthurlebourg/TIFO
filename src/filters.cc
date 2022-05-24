@@ -11,10 +11,13 @@ auto GAUSS_Y = Matrix<float>(
 
 float cGaussian[64];
 
-void gaussian_blur(Matrix<float> &mat, Matrix<float> &tmp_buffer)
+void gaussian_blur(Matrix<float> &mat, Matrix<float> &tmp_buffer,
+                   size_t padding)
 {
-    mat.convolve(GAUSS_X, tmp_buffer);
-    tmp_buffer.convolve(GAUSS_Y, mat);
+    mat.convolve(GAUSS_X, tmp_buffer, padding);
+    tmp_buffer.pad_borders(padding);
+    tmp_buffer.convolve(GAUSS_Y, mat, padding);
+    mat.pad_borders(padding);
 }
 
 float euclideanLen(RGB a, RGB b, float d)

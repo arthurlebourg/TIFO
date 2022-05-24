@@ -39,6 +39,7 @@ public:
 
     void apply(const std::function<T(T, size_t)> &func);
     void convolve(Matrix<T> &kernel, Matrix<T> &output);
+    void convolve(Matrix<T> &kernel, Matrix<T> &output, size_t padding);
     void morph(Matrix<T> &kernel, bool is_dilation, Matrix<T> &output);
 
     size_t get_rows();
@@ -66,6 +67,10 @@ public:
     bool is_in_bound(size_t x, size_t y);
 
     bool is_on_boundary(size_t x, size_t y, size_t sx, size_t sy);
+
+    void pad_borders(size_t padding);
+    void to_padded(size_t padding, Matrix<T> &output);
+    void to_unpad(size_t padding, Matrix<T> &output);
 
 private:
     size_t mRows;

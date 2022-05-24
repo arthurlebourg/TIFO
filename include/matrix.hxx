@@ -65,7 +65,7 @@ void Matrix<T>::convolve(Matrix<T> &kernel, Matrix<T> &output)
     int kCenterY = kernel.mRows / 2;
 
     tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, output.get_rows()),
+        tbb::blocked_range<size_t>(0, mRows),
         [&](tbb::blocked_range<size_t> r) {
             for (size_t i = r.begin(); i < r.end(); i++)
             {
@@ -91,6 +91,44 @@ void Matrix<T>::convolve(Matrix<T> &kernel, Matrix<T> &output)
                                 acc += mData[ii * mCols + jj]
                                     * kernel.mData[m * kernel.mCols + n];
                             }
+                        }
+                    }
+
+                    output.mData[i * mCols + j] = acc;
+                }
+            }
+        });
+}
+
+template <typename T>
+void Matrix<T>::convolve(Matrix<T> &kernel, Matrix<T> &output, size_t padding)
+{
+    int kCenterX = kernel.mCols / 2;
+    int kCenterY = kernel.mRows / 2;
+
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(padding, mRows - padding),
+        [&](tbb::blocked_range<size_t> r) {
+            for (size_t i = r.begin(); i < r.end(); i++)
+            {
+                for (size_t j = padding; j < mCols - padding; j++)
+                {
+                    T acc{};
+
+                    for (size_t m = 0; m < kernel.mRows; m++)
+                    {
+                        size_t mm = kernel.mRows - 1 - m;
+
+                        for (size_t n = 0; n < kernel.mCols; n++)
+                        {
+                            size_t nn = kernel.mCols - 1 - n;
+
+                            // index of input signal, used for checking boundary
+                            size_t ii = i + (kCenterY - mm);
+                            size_t jj = j + (kCenterX - nn);
+
+                            acc += mData[ii * mCols + jj]
+                                * kernel.mData[m * kernel.mCols + n];
                         }
                     }
 
@@ -310,4 +348,62 @@ template <typename T>
 bool Matrix<T>::is_on_boundary(size_t x, size_t y, size_t sx, size_t sy)
 {
     return (!(x >= sx && x < (mCols - sx)) || !(y >= sy && y < (mRows - sy)));
+}
+
+template <typename T>
+void Matrix<T>::pad_borders(size_t padding)
+{
+    for (size_t p = 0; p < padding; p++)
+    {
+        for (size_t i = padding; i < mRows - padding; i++)
+        {
+            // left
+            set_value(padding - 1 - p, i, get_value(padding + p, i));
+            // right
+            set_value(mCols - padding + p, i,
+                      get_value(mCols - 1 - padding - p, i));
+        }
+        for (size_t i = padding; i < mCols - padding; i++)
+        {
+            // top
+            set_value(i, padding - 1 - p, get_value(i, padding + p));
+            // bottom
+            set_value(i, mRows - padding + p,
+                      get_value(i, mRows - 1 - padding - p));
+        }
+    }
+}
+
+template <typename T>
+void Matrix<T>::to_padded(size_t padding, Matrix<T> &output)
+{
+    tbb::parallel_for(tbb::blocked_range<size_t>(0, mRows),
+                      [&](tbb::blocked_range<size_t> r) {
+                          for (size_t i = r.begin(); i < r.end(); i++)
+                          {
+                              for (size_t j = 0; j < mCols; j++)
+                              {
+                                  output.set_value(j + padding, i + padding,
+                                                   get_value(j, i));
+                              }
+                          }
+                      });
+
+    output.pad_borders(padding);
+}
+
+template <typename T>
+void Matrix<T>::to_unpad(size_t padding, Matrix<T> &output)
+{
+    tbb::parallel_for(
+        tbb::blocked_range<size_t>(0, output.get_rows()),
+        [&](tbb::blocked_range<size_t> r) {
+            for (size_t i = r.begin(); i < r.end(); i++)
+            {
+                for (size_t j = 0; j < output.get_cols(); j++)
+                {
+                    output.set_value(j, i, get_value(j + padding, i + padding));
+                }
+            }
+        });
 }

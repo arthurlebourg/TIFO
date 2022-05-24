@@ -133,8 +133,12 @@ int main(int argc, char *argv[])
     unsigned char *saved_frame_buffer = (unsigned char *)calloc(
         screen_width * screen_height * 4, sizeof(unsigned char));
 
-    std::vector<Matrix<float>> canny_buffers(
-        3, Matrix<float>(screen_height, screen_width, 0));
+    const size_t padding = 2;
+    std::vector<Matrix<float>> padded_buffers(
+        3,
+        Matrix<float>((screen_height + padding * 2),
+                      (screen_width + padding * 2), 0));
+    auto non_padded_buffer = Matrix<float>(screen_height, screen_width, 0);
 
     Matrix<RGB> bil_filter_buffer(screen_height, screen_width, RGB());
     Matrix<RGB> pixels_matrix(screen_height, screen_width, RGB());
@@ -387,29 +391,35 @@ int main(int argc, char *argv[])
         if (dark_borders)
         {
             to_grayscale(edge_contrast_correction ? tmp_buffer : raw_buffer,
-                         canny_buffers[0]);
-            edge_detection(canny_buffers, blur, low_threshold_ratio,
+                         non_padded_buffer);
+            non_padded_buffer.to_padded(padding, padded_buffers[0]);
+
+            edge_detection(padded_buffers, padding, blur, low_threshold_ratio,
                            high_threshold_ratio);
 
             if (border_dilation)
             {
-                thicken_edges(canny_buffers[0], canny_buffers[2],
-                              canny_buffers[1]);
-                canny_buffers[1].swap(canny_buffers[0]);
+                thicken_edges(padded_buffers[0], padded_buffers[2],
+                              padded_buffers[1], padding);
+                padded_buffers[1].swap(padded_buffers[0]);
+                padded_buffers[0].pad_borders(padding);
             }
         }
         else if (edges_only)
         {
             to_grayscale(edge_contrast_correction ? tmp_buffer : raw_buffer,
-                         canny_buffers[0]);
-            edge_detection(canny_buffers, blur, low_threshold_ratio,
+                         non_padded_buffer);
+            non_padded_buffer.to_padded(padding, padded_buffers[0]);
+
+            edge_detection(padded_buffers, padding, blur, low_threshold_ratio,
                            high_threshold_ratio);
             // remap_to_rgb(canny_edge_buffers[0]);
             if (border_dilation)
             {
-                thicken_edges(canny_buffers[0], canny_buffers[2],
-                              canny_buffers[1]);
-                canny_buffers[1].swap(canny_buffers[0]);
+                thicken_edges(padded_buffers[0], padded_buffers[2],
+                              padded_buffers[1], padding);
+                padded_buffers[1].swap(padded_buffers[0]);
+                padded_buffers[0].pad_borders(padding);
             }
         }
 
@@ -434,11 +444,13 @@ int main(int argc, char *argv[])
         // Apply edges AFTER color pre-processing
         if (dark_borders)
         {
-            set_dark_borders(raw_buffer, canny_buffers[0]);
+            padded_buffers[0].to_unpad(padding, non_padded_buffer);
+            set_dark_borders(raw_buffer, non_padded_buffer);
         }
         else if (edges_only)
         {
-            fill_buffer(raw_buffer, canny_buffers[0]);
+            padded_buffers[0].to_unpad(padding, non_padded_buffer);
+            fill_buffer(raw_buffer, non_padded_buffer);
         }
 
         if (pixelate)

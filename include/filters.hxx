@@ -14,14 +14,14 @@ void median_filter(Matrix<T> &input, Matrix<T> &output, size_t window_size)
     size_t m_cols = input.get_cols();
 
     tbb::parallel_for(
-        tbb::blocked_range<size_t>(0, m_rows),
+        tbb::blocked_range<size_t>(half_size, m_rows - half_size),
         [&](tbb::blocked_range<size_t> r) {
             for (size_t i = r.begin(); i < r.end(); i++)
             {
                 std::vector<T> entries;
                 entries.reserve(window_size * window_size);
 
-                for (size_t j = 0; j < m_cols; j++)
+                for (size_t j = half_size; j < m_cols - half_size; j++)
                 {
                     entries.clear();
 

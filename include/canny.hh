@@ -51,8 +51,9 @@ inline std::ostream &operator<<(std::ostream &out, Blur blur)
     }
 }
 
-void edge_detection(std::vector<Matrix<float>> &buffers, Blur blur,
-                    float low_threshold_ratio, float hight_threshold_ratio);
+void edge_detection(std::vector<Matrix<float>> &padded_buffers, size_t padding,
+                    Blur blur, float low_threshold_ratio,
+                    float hight_threshold_ratio);
 
 void thicken_edges(Matrix<float> &edges_in, Matrix<float> &angle_in,
-                   Matrix<float> &edges_out);
+                   Matrix<float> &edges_out, size_t padding);
