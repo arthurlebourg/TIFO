@@ -58,8 +58,8 @@ int main(int argc, char *argv[])
     }
 
     const char *shortcut_text =
-        "H : display shortcuts\n"
-        "SPACE : freeze frame\n"
+        "TAB : display shortcuts\n"
+        "SPACE : pause/unpause\n"
         "\n"
         "E : display contours\n"
         "B : apply border darkening\n"
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
         "L / H + UP / DOWN : update low/high Canny thresholds\n"
         "\n"
         "P : compute color palette\n"
-        "C : color quantizatin\n"
+        "C : color quantization\n"
         "S : color saturation boost\n"
         "X : color contrast correction\n"
         "UP / DOWN arrows : update saturation value\n"
@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
             if (SDL_KEYDOWN == event.type)
             {
                 auto state = SDL_GetKeyboardState(NULL);
-                if (state[SDL_SCANCODE_H])
+                if (state[SDL_SCANCODE_TAB])
                 {
                     render_shortcuts = !render_shortcuts;
                     std::cout << "Show shortcuts: "
