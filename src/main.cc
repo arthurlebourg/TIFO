@@ -137,7 +137,6 @@ int main(int argc, char *argv[])
         3, Matrix<float>(screen_height, screen_width, 0));
 
     Matrix<RGB> bil_filter_buffer(screen_height, screen_width, RGB());
-
     Matrix<RGB> pixels_matrix(screen_height, screen_width, RGB());
 
     Quantizer q;

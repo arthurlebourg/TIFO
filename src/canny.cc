@@ -107,6 +107,8 @@ void weak_strong_edges_thresholding(Matrix<float> &input, Matrix<float> &output,
     float high_threshold = input.get_max() * hi;
     float low_threshold = high_threshold * lo;
 
+    // std::cout << low_threshold << " " << high_threshold << "\n";
+
     tbb::parallel_for(tbb::blocked_range<size_t>(0, input.get_rows()),
                       [&](tbb::blocked_range<size_t> r) {
                           for (size_t i = r.begin(); i < r.end(); i++)
@@ -231,43 +233,134 @@ void thicken_edges(Matrix<float> &edges_in, Matrix<float> &angle_in,
                         // 0°
                         if (angle < 22.5 || angle >= 157.5)
                         {
-                            edges_out.safe_set(j - 1, i, STRONG);
-                            edges_out.safe_set(j - 1, i + 1, STRONG);
+                            // Simple box
+                            // 1st row
                             edges_out.safe_set(j - 1, i - 1, STRONG);
-                            edges_out.safe_set(j + 1, i, STRONG);
-                            edges_out.safe_set(j + 1, i + 1, STRONG);
+                            edges_out.safe_set(j, i - 1, STRONG);
                             edges_out.safe_set(j + 1, i - 1, STRONG);
+                            // 2nd row
+                            edges_out.safe_set(j - 1, i, STRONG);
+                            edges_out.safe_set(j + 1, i, STRONG);
+                            // 3rd row
+                            edges_out.safe_set(j - 1, i + 1, STRONG);
+                            edges_out.safe_set(j, i + 1, STRONG);
+                            edges_out.safe_set(j + 1, i + 1, STRONG);
+
+                            // Extending cone shape
+                            // for (int m = -t; m <= t; m++)
+                            // {
+                            //     edges_out.safe_set(j - t, i + m, STRONG);
+                            //     edges_out.safe_set(j + t, i + m, STRONG);
+                            // }
+
+                            // 3 pixel wide stick
+                            // edges_out.safe_set(j - t, i, STRONG);
+                            // edges_out.safe_set(j - t, i - 1, STRONG);
+                            // edges_out.safe_set(j - t, i + 1, STRONG);
+                            // edges_out.safe_set(j + t, i, STRONG);
+                            // edges_out.safe_set(j + t, i - 1, STRONG);
+                            // edges_out.safe_set(j + t, i + 1, STRONG);
                         }
                         // 45°
                         else if (angle >= 22.5 && angle < 67.5)
                         {
+                            // Simple box
+                            // 1st row
                             edges_out.safe_set(j - 1, i - 1, STRONG);
-                            edges_out.safe_set(j + 1, i + 1, STRONG);
+                            edges_out.safe_set(j, i - 1, STRONG);
+                            // 2nd row
                             edges_out.safe_set(j - 1, i, STRONG);
                             edges_out.safe_set(j + 1, i, STRONG);
-                            edges_out.safe_set(j, i - 1, STRONG);
+                            // 3rd row
                             edges_out.safe_set(j, i + 1, STRONG);
+                            edges_out.safe_set(j + 1, i + 1, STRONG);
+
+                            // Extending cone shape
+                            // for (int m = 0; m <= t; m++)
+                            // {
+                            //     edges_out.safe_set(j - m, i - t, STRONG);
+                            //     edges_out.safe_set(j + m, i + t, STRONG);
+                            // }
+                            // for (int m = 0; m <= t - 1; m++)
+                            // {
+                            //     edges_out.safe_set(j - t, i - m, STRONG);
+                            //     edges_out.safe_set(j + t, i + m, STRONG);
+                            // }
+
+                            // 3 pixel wide stick
+                            // edges_out.safe_set(j - t, i - t, STRONG);
+                            // edges_out.safe_set(j - t, i - t + 1, STRONG);
+                            // edges_out.safe_set(j - t + 1, i - t, STRONG);
+                            // edges_out.safe_set(j + t, i + t, STRONG);
+                            // edges_out.safe_set(j + t - 1, i + t, STRONG);
+                            // edges_out.safe_set(j + t, i + t - 1, STRONG);
                         }
                         // 90°
                         else if (angle >= 67.5 && angle < 112.5)
                         {
+                            // Simple box
+                            // 1st row
+                            edges_out.safe_set(j - 1, i - 1, STRONG);
                             edges_out.safe_set(j, i - 1, STRONG);
                             edges_out.safe_set(j + 1, i - 1, STRONG);
-                            edges_out.safe_set(j - 1, i - 1, STRONG);
+                            // 2nd row
+                            edges_out.safe_set(j - 1, i, STRONG);
+                            edges_out.safe_set(j + 1, i, STRONG);
+                            // 3rd row
+                            edges_out.safe_set(j - 1, i + 1, STRONG);
                             edges_out.safe_set(j, i + 1, STRONG);
                             edges_out.safe_set(j + 1, i + 1, STRONG);
-                            edges_out.safe_set(j - 1, i + 1, STRONG);
+
+                            // Extending cone shape
+                            // for (int m = -t; m <= t; m++)
+                            // {
+                            //     edges_out.safe_set(j + m, i - t, STRONG);
+                            //     edges_out.safe_set(j + m, i + t, STRONG);
+                            // }
+
+                            // 3 pixel wide stick
+                            // edges_out.safe_set(j, i - t, STRONG);
+                            // edges_out.safe_set(j - 1, i - t, STRONG);
+                            // edges_out.safe_set(j + 1, i - t, STRONG);
+                            // edges_out.safe_set(j, i + t, STRONG);
+                            // edges_out.safe_set(j - 1, i + t, STRONG);
+                            // edges_out.safe_set(j + 1, i + t, STRONG);
                         }
                         // 135°
                         else if (angle >= 112.5 && angle < 157.5)
                         {
-                            edges_out.safe_set(j - 1, i + 1, STRONG);
+                            // Simple box
+                            // 1st row
+                            edges_out.safe_set(j, i - 1, STRONG);
                             edges_out.safe_set(j + 1, i - 1, STRONG);
+                            // 2nd row
                             edges_out.safe_set(j - 1, i, STRONG);
                             edges_out.safe_set(j + 1, i, STRONG);
-                            edges_out.safe_set(j, i - 1, STRONG);
+                            // 3rd row
+                            edges_out.safe_set(j - 1, i + 1, STRONG);
                             edges_out.safe_set(j, i + 1, STRONG);
+
+                            // Extending cone shape
+                            // for (int m = 0; m <= t; m++)
+                            // {
+                            //     edges_out.safe_set(j - m, i - t, STRONG);
+                            //     edges_out.safe_set(j + m, i + t, STRONG);
+                            // }
+                            // for (int m = 0; m <= t - 1; m++)
+                            // {
+                            //     edges_out.safe_set(j - t, i + m, STRONG);
+                            //     edges_out.safe_set(j + t, i - m, STRONG);
+                            // }
+
+                            // 3 pixel wide stick
+                            // edges_out.safe_set(j - t, i + t, STRONG);
+                            // edges_out.safe_set(j - t, i + t - 1, STRONG);
+                            // edges_out.safe_set(j - t + 1, i + t, STRONG);
+                            // edges_out.safe_set(j + t, i - t, STRONG);
+                            // edges_out.safe_set(j + t, i - t + 1, STRONG);
+                            // edges_out.safe_set(j + t - 1, i - t, STRONG);
                         }
+                        // }
 
                         edges_out.set_value(j, i, value);
                     }
