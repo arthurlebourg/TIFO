@@ -309,107 +309,103 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        if (!render_shortcuts)
+
+        if (generate_palette)
         {
-            if (generate_palette)
+            q = Quantizer();
+
+            std::cout << "generating new color palette" << std::endl;
+
+            for (size_t i = 0; i < screen_height * screen_width; i++)
             {
-                q = Quantizer();
-
-                std::cout << "generating new color palette" << std::endl;
-
-                for (size_t i = 0; i < screen_height * screen_width; i++)
-                {
-                    auto color = get_pixel(raw_buffer, i * 4);
-                    q.add_color(color);
-                }
-
-                palette = q.make_palette(palette_number);
-                std::cout << "color palette: " << palette.size() << std::endl;
-
-                palette_lightness_cumul_histo =
-                    q.get_lightness_cumulative_histogram();
-
-                palette_init = true;
-                generate_palette = false;
+                auto color = get_pixel(raw_buffer, i * 4);
+                q.add_color(color);
             }
 
-            // Preprocess
+            palette = q.make_palette(palette_number);
+            std::cout << "color palette: " << palette.size() << std::endl;
 
-            // Compute edges BEFORE color pre-processing
-            if (dark_borders)
+            palette_lightness_cumul_histo =
+                q.get_lightness_cumulative_histogram();
+
+            palette_init = true;
+            generate_palette = false;
+        }
+
+        // Preprocess
+
+        // Compute edges BEFORE color pre-processing
+        if (dark_borders)
+        {
+            if (contrast_cor) // From raw buffer
             {
-                if (contrast_cor) // From raw buffer
-                {
-                    auto c_histo =
-                        compute_lightness_cumul_histogram(raw_buffer);
-                    contrast_correction(raw_buffer, c_histo);
-                }
-
-                to_grayscale(raw_buffer, canny_buffers[0]);
-                edge_detection(canny_buffers, blur, low_threshold_ratio,
-                               high_threshold_ratio);
-
-                if (border_dilation)
-                {
-                    thicken_edges(canny_buffers[0], canny_buffers[2],
-                                  canny_buffers[1]);
-                    canny_buffers[1].swap(canny_buffers[0]);
-                }
-            }
-            else if (edges_only)
-            {
-                to_grayscale(raw_buffer, canny_buffers[0]);
-                edge_detection(canny_buffers, blur, low_threshold_ratio,
-                               high_threshold_ratio);
-                // remap_to_rgb(canny_edge_buffers[0]);
-                if (border_dilation)
-                {
-                    thicken_edges(canny_buffers[0], canny_buffers[2],
-                                  canny_buffers[1]);
-                    canny_buffers[1].swap(canny_buffers[0]);
-                }
+                auto c_histo = compute_lightness_cumul_histogram(raw_buffer);
+                contrast_correction(raw_buffer, c_histo);
             }
 
-            if (color_quantization)
+            to_grayscale(raw_buffer, canny_buffers[0]);
+            edge_detection(canny_buffers, blur, low_threshold_ratio,
+                           high_threshold_ratio);
+
+            if (border_dilation)
             {
-                // if (contrast_cor) // From raw buffer
-                // {
-                //     auto c_histo =
-                //     compute_lightness_cumul_histogram(raw_buffer);
-                //     contrast_correction(raw_buffer, c_histo);
-                // }
+                thicken_edges(canny_buffers[0], canny_buffers[2],
+                              canny_buffers[1]);
+                canny_buffers[1].swap(canny_buffers[0]);
+            }
+        }
+        else if (edges_only)
+        {
+            to_grayscale(raw_buffer, canny_buffers[0]);
+            edge_detection(canny_buffers, blur, low_threshold_ratio,
+                           high_threshold_ratio);
+            // remap_to_rgb(canny_edge_buffers[0]);
+            if (border_dilation)
+            {
+                thicken_edges(canny_buffers[0], canny_buffers[2],
+                              canny_buffers[1]);
+                canny_buffers[1].swap(canny_buffers[0]);
+            }
+        }
 
-                apply_palette(raw_buffer, q, palette);
+        if (color_quantization)
+        {
+            // if (contrast_cor) // From raw buffer
+            // {
+            //     auto c_histo =
+            //     compute_lightness_cumul_histogram(raw_buffer);
+            //     contrast_correction(raw_buffer, c_histo);
+            // }
 
-                if (contrast_cor) // From palette
-                {
-                    contrast_correction(raw_buffer,
-                                        palette_lightness_cumul_histo);
-                }
+            apply_palette(raw_buffer, q, palette);
 
-                if (saturation_boost)
-                {
-                    saturation_modification(raw_buffer, saturation_value);
-                }
-
-                //  apply_palette_debug(raw_buffer, q, palette, screen_width /
-                //  2);
+            if (contrast_cor) // From palette
+            {
+                contrast_correction(raw_buffer, palette_lightness_cumul_histo);
             }
 
-            // Apply edges AFTER color pre-processing
-            if (dark_borders)
+            if (saturation_boost)
             {
-                set_dark_borders(raw_buffer, canny_buffers[0]);
-            }
-            else if (edges_only)
-            {
-                fill_buffer(raw_buffer, canny_buffers[0]);
+                saturation_modification(raw_buffer, saturation_value);
             }
 
-            if (pixelate)
-            {
-                pixelate_buffer(raw_buffer, 10);
-            }
+            //  apply_palette_debug(raw_buffer, q, palette, screen_width /
+            //  2);
+        }
+
+        // Apply edges AFTER color pre-processing
+        if (dark_borders)
+        {
+            set_dark_borders(raw_buffer, canny_buffers[0]);
+        }
+        else if (edges_only)
+        {
+            fill_buffer(raw_buffer, canny_buffers[0]);
+        }
+
+        if (pixelate)
+        {
+            pixelate_buffer(raw_buffer, 10);
         }
 
         // SDL again
