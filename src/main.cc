@@ -54,17 +54,19 @@ int main(int argc, char *argv[])
     }
 
     const char *shortcut_text =
-        "Different keyboard shortcuts:\n"
-        "\n"
         "E : Display contours\n"
         "B : Apply border darkening\n"
         "D : Apply border dilation/thickening\n"
-        "RIGHT and LEFT arrows to select blur function\n"
-        "L / H + UP / DOWN to update low/high thresholds\n"
+        "RIGHT and LEFT arrows : select blur function\n"
+        "L / H + UP / DOWN : update low/high Canny thresholds\n"
         "\n"
         "P : compute color palette\n"
-        "UP / DOWN arrows to update the saturation value\n"
-        "N to activate pixel filter\n";
+        "C : color quantizatin\n"
+        "S : olor saturation boost\n"
+        "UP / DOWN arrows : update saturation value\n"
+        "\n"
+        "F : freeze frame\n"
+        "N : pixel filter\n";
 
     SDL_Surface *shortcut_surface = TTF_RenderText_Blended_Wrapped(
         Sans, shortcut_text, { 255, 255, 255, 255 }, screen_width);
