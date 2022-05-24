@@ -16,6 +16,8 @@
 - **UP** / **DOWN** arrows to update saturation value
 
 ## Misc
-- **F** to freeze the video stream on the current frame
 - **N** apply pixel filter
 
+## Utils
+- **SPACE** to freeze the video stream on the current frame
+- **H** display shortcuts

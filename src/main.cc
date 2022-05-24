@@ -67,8 +67,10 @@ int main(int argc, char *argv[])
         "X : color contrast correction\n"
         "UP / DOWN arrows : update saturation value\n"
         "\n"
-        "F : freeze frame\n"
-        "N : pixel filter\n";
+        "N : pixel filter\n"
+        "\n"
+        "SPACE : freeze frame\n"
+        "H : display shortcuts\n";
 
     SDL_Surface *shortcut_surface = TTF_RenderText_Blended_Wrapped(
         Sans, shortcut_text, { 255, 255, 255, 255 }, screen_width);
@@ -195,14 +197,14 @@ int main(int argc, char *argv[])
             if (SDL_KEYDOWN == event.type)
             {
                 auto state = SDL_GetKeyboardState(NULL);
-                if (state[SDL_SCANCODE_SPACE])
+                if (state[SDL_SCANCODE_H])
                 {
                     render_shortcuts = !render_shortcuts;
                     std::cout << "Show shortcuts: "
                               << (render_shortcuts ? "enabled" : "disabled")
                               << std::endl;
                 }
-                if (state[SDL_SCANCODE_F])
+                if (state[SDL_SCANCODE_SPACE])
                 {
                     freeze_frame = !freeze_frame;
                     frame_saved = false;
