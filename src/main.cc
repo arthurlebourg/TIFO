@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
     bool edges_only = false;
     bool dark_borders = false;
     bool border_dilation = true;
-    bool edge_contrast_correction = false;
+    bool edge_contrast_correction = true;
 
     bool palette_init = false;
     bool generate_palette = false;

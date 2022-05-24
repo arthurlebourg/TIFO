@@ -30,6 +30,7 @@ public:
     {}
 
     void set_values(std::vector<T> &val);
+    void fill(T val);
     void swap(Matrix<T> &mat);
 
     T get_min();

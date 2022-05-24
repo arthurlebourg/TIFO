@@ -210,6 +210,8 @@ void edge_detection(std::vector<Matrix<float>> &buffers, Blur blur,
 void thicken_edges(Matrix<float> &edges_in, Matrix<float> &angle_in,
                    Matrix<float> &edges_out)
 {
+    edges_out.fill(0);
+
     tbb::parallel_for(
         tbb::blocked_range<size_t>(0, edges_in.get_rows()),
         [&](tbb::blocked_range<size_t> r) {
@@ -266,9 +268,9 @@ void thicken_edges(Matrix<float> &edges_in, Matrix<float> &angle_in,
                             edges_out.safe_set(j, i - 1, STRONG);
                             edges_out.safe_set(j, i + 1, STRONG);
                         }
-                    }
 
-                    edges_out.set_value(j, i, value);
+                        edges_out.set_value(j, i, value);
+                    }
                 }
             }
         });

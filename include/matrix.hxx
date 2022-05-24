@@ -16,6 +16,12 @@ void Matrix<T>::set_values(std::vector<T> &val)
 }
 
 template <typename T>
+void Matrix<T>::fill(T val)
+{
+    mData.assign(mData.size(), val);
+}
+
+template <typename T>
 void Matrix<T>::swap(Matrix<T> &mat)
 {
     mData.swap(mat.get_data());
