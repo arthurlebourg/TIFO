@@ -1,5 +1,12 @@
 # How to use
 
+- make
+
+- Default camera feed (/dev/video0): `./bin/tifo`
+- Any feed (webcam, video file, rtsp stream) : `./bin/tifo <feed>`
+
+# Shortcuts
+
 ## Edges (Canny)
 
 - **E** display raw detected edges
@@ -13,6 +20,7 @@
 - **P** compute color palette (Color Quantization)
 - **C** apply color quantization
 - **S** apply color saturation boost
+- **X**  color contrast correction
 - **UP** / **DOWN** arrows to update saturation value
 
 ## Misc
@@ -20,4 +28,4 @@
 
 ## Utils
 - **SPACE** to freeze the video stream on the current frame
-- **H** display shortcuts
+- **TAB** display shortcuts

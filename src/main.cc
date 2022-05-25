@@ -105,26 +105,13 @@ int main(int argc, char *argv[])
     unsigned int frames = 0;
     Uint64 start = SDL_GetPerformanceCounter();
 
-    FILE *pipein;
-    if (argc == 1)
-    {
-        pipein = popen("ffmpeg -loglevel error -stream_loop -1 -i /dev/video0  "
-                       "-f image2pipe "
-                       "-vcodec rawvideo "
-                       "-pix_fmt rgba -r 30 -s 1280x720 -",
-                       "r");
-    }
-    else
-    {
-        auto command =
-            std::string("ffmpeg -loglevel error -stream_loop -1 -i ");
-        command.append(argv[1]);
-        command.append(" -f image2pipe "
-                       "-vcodec rawvideo "
-                       "-pix_fmt rgba -r 25 "
-                       "-s 1280x720 -");
-        pipein = popen(command.c_str(), "r");
-    }
+    auto command = std::string("ffmpeg -loglevel error -stream_loop -1 -i ");
+    command.append(argc == 2 ? argv[1] : "/dev/video0");
+    command.append(" -f image2pipe "
+                   "-vcodec rawvideo "
+                   "-pix_fmt rgba -r 30 "
+                   "-s 1280x720 -");
+    FILE *pipein = popen(command.c_str(), "r");
 
     unsigned char *raw_buffer = (unsigned char *)calloc(
         screen_width * screen_height * 4, sizeof(unsigned char));
